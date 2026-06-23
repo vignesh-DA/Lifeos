@@ -4,11 +4,18 @@ Your Personal Life Operating System 🚀
 """
 import sys
 import os
+
+# Reconfigure stdout/stderr to use UTF-8 to prevent UnicodeEncodeError on Windows terminals
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, HTMLResponse
 
 # Add backend directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -35,7 +42,9 @@ async def lifespan(app: FastAPI):
         await connect_db()
     except Exception as e:
         print(f"  ❌ MongoDB connection failed: {e}")
-        print("  ℹ️  Running without database — some features disabled")
+        print("  ℹ️  Falling back to in-memory store...")
+        from db.mongodb import use_memory_fallback
+        await use_memory_fallback()
 
     # Load ML models
     try:
@@ -86,10 +95,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─── Mount Frontend Static Files ───
+# ─── Frontend path ───
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
-if os.path.exists(frontend_path):
-    app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
 # ─── Import and Include Routers ───
 from routes.tasks import router as tasks_router
@@ -114,11 +121,20 @@ async def health():
     }
 
 
-@app.get("/", tags=["System"])
+@app.get("/", tags=["System"], response_class=HTMLResponse)
 async def root():
-    """Root endpoint — redirect info."""
-    return {
-        "message": "Welcome to LIFEOS API",
-        "docs": "/docs",
-        "health": "/health",
-    }
+    """Serve the frontend homepage."""
+    index_file = os.path.join(frontend_path, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file, media_type="text/html")
+    return HTMLResponse("<h1>LIFEOS — Frontend not found</h1>", status_code=404)
+
+
+@app.get("/{filename:path}", tags=["System"])
+async def serve_frontend(filename: str):
+    """Serve frontend files (HTML, CSS, JS, etc.) from the root URL."""
+    file_path = os.path.join(frontend_path, filename)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    # Fallback to index.html for SPA-style routing
+    return FileResponse(os.path.join(frontend_path, "index.html"), media_type="text/html")

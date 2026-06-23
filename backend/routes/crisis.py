@@ -69,8 +69,15 @@ async def crisis_assist(request: CrisisAssistRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty")
 
     try:
-        from agent.tools import get_llm
-        llm = get_llm()
+        from langchain_groq import ChatGroq
+        from config import settings
+
+        groq_llm = ChatGroq(
+            api_key=settings.GROQ_API_KEY,
+            model_name=settings.GROQ_MODEL,
+            temperature=0.7,
+            max_tokens=500,
+        )
         prompt = f"""You are LIFEOS Crisis Assistant. The user is in CRISIS MODE working on:
 Task: {request.task_title}
 Current Step: Step {request.step} — {request.step_title}
@@ -80,9 +87,9 @@ No lengthy explanations. Give them exactly what they need to move forward.
 
 User's question: {request.question}
 
-Respond with clear, actionable help:"""
+Respond with clear, actionable help in 3-5 sentences max:"""
 
-        response = llm.invoke(prompt)
+        response = groq_llm.invoke(prompt)
         answer = response.content if hasattr(response, 'content') else str(response)
 
         return {
@@ -95,9 +102,8 @@ Respond with clear, actionable help:"""
         return {
             "step": request.step,
             "question": request.question,
-            "assistance": f"I'm having trouble connecting to AI right now. Here's a general tip: Break this step into the smallest possible action and just start writing. Don't aim for perfection — aim for done.",
+            "assistance": f"Quick tip for Step {request.step} — {request.step_title}: Focus on the most essential part only. Write/do just enough to show you understand the core concept. Perfection is the enemy of done.",
             "message": "Fallback assistance provided",
-            "error": str(e),
         }
 
 

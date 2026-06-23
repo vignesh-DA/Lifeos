@@ -90,10 +90,10 @@
 ## What's Remaining
 
 ### 🔲 Testing & Verification
-- [ ] Install dependencies (`pip install -r requirements.txt`)
-- [ ] Download spaCy model
+- [x] Install dependencies (`pip install -r requirements.txt`)
+- [x] Download spaCy model
 - [ ] Set up `.env` with real API keys
-- [ ] Start backend server and test health endpoint
+- [x] Start backend server and test health endpoint (server runs successfully)
 - [ ] Test brain dump endpoint
 - [ ] Test all frontend pages in browser
 - [ ] End-to-end flow test

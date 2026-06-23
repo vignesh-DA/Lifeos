@@ -166,6 +166,10 @@ function createTaskCard(task, options = {}) {
     const showCrisis = options.showCrisis !== false;
     const animationDelay = options.delay || 0;
 
+    // Use JSON.stringify to safely encode strings with quotes/apostrophes
+    const safeTitle = JSON.stringify(task.title || '');
+    const safeId = JSON.stringify(task._id || '');
+
     return `
         <div class="task-card priority-${priorityClass} animate-slide-up"
              style="animation-delay: ${animationDelay}s"
@@ -186,11 +190,11 @@ function createTaskCard(task, options = {}) {
                 </span>
                 ${showActions ? `
                 <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn-success" onclick="handleCompleteTask('${task._id}')" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                    <button class="btn-success" onclick="handleCompleteTask(${safeId})" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
                         ✓ Done
                     </button>
                     ${showCrisis && priority >= 7 ? `
-                    <button class="btn-ghost" onclick="handleCrisisMode('${task._id}', '${escapeHtml(task.title)}')"
+                    <button class="btn-ghost" onclick="handleCrisisMode(${safeId}, ${safeTitle})"
                             style="padding: 0.35rem 0.75rem; font-size: 0.8rem; color: var(--accent-crisis); border-color: var(--accent-crisis);">
                         🚨 Crisis
                     </button>` : ''}

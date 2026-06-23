@@ -39,7 +39,7 @@ def get_llm():
             try:
                 from langchain_google_genai import ChatGoogleGenerativeAI
                 _fallback_llm = ChatGoogleGenerativeAI(
-                    model="gemini-pro",
+                    model="gemini-2.5-flash",
                     google_api_key=settings.GEMINI_API_KEY,
                     temperature=settings.LLM_TEMPERATURE,
                     max_output_tokens=settings.LLM_MAX_TOKENS,

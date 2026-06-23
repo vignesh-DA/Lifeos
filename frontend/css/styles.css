@@ -582,6 +582,18 @@ textarea.input-dark {
     70% { transform: scale(1); }
 }
 
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.btn-crisis:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    animation: none;
+    transform: none;
+}
+
 @keyframes glow-pulse {
     0%, 100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
     50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
