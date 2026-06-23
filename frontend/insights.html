@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LIFEOS Insights — AI-powered analytics, procrastination patterns, and productivity recommendations.">
+    <title>Insights — LIFEOS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-[#0F0F1A] text-white min-h-screen">
+
+    <!-- Nav -->
+    <nav class="bg-[#0F0F1A]/80 backdrop-blur-xl border-b border-[#2D2D4E] px-6 py-3 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <a href="index.html" class="flex items-center gap-2">
+                    <span class="text-xl">🧠</span>
+                    <span class="font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">LIFEOS</span>
+                </a>
+                <div class="hidden md:flex items-center gap-1">
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="onboard.html" class="nav-link">Brain Dump</a>
+                    <a href="calendar.html" class="nav-link">Calendar</a>
+                    <a href="insights.html" class="nav-link active">Insights</a>
+                </div>
+            </div>
+            <button onclick="generateWeeklyReview()" class="btn-primary text-sm">
+                📊 Generate Review
+            </button>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <div class="mb-8 animate-slide-up">
+            <h1 class="text-2xl font-bold">Analytics & <span class="gradient-text">Insights</span></h1>
+            <p class="text-slate-400 text-sm mt-1">AI-powered behavioral analysis of your productivity patterns.</p>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <!-- Productivity Over Time -->
+            <div class="glass-card animate-slide-up delay-1">
+                <h3 class="font-semibold mb-4 text-sm text-slate-400 uppercase tracking-wider">Productivity Trend</h3>
+                <div style="height: 250px;">
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tasks by Category -->
+            <div class="glass-card animate-slide-up delay-2">
+                <h3 class="font-semibold mb-4 text-sm text-slate-400 uppercase tracking-wider">Tasks by Category</h3>
+                <div style="height: 250px;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Completion Rate -->
+            <div class="glass-card animate-slide-up delay-3">
+                <h3 class="font-semibold mb-4 text-sm text-slate-400 uppercase tracking-wider">Completion Rate</h3>
+                <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 200px; height: 200px;">
+                        <canvas id="completionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hour Productivity -->
+            <div class="glass-card animate-slide-up delay-4">
+                <h3 class="font-semibold mb-4 text-sm text-slate-400 uppercase tracking-wider">Productivity by Hour</h3>
+                <div style="height: 250px;">
+                    <canvas id="hourChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patterns & Recommendations -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <!-- Patterns -->
+            <div class="glass-card animate-slide-up delay-5">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-lg">🔍</span>
+                    <h3 class="font-semibold">Procrastination Patterns</h3>
+                </div>
+                <div id="patternsContainer" class="space-y-3">
+                    <div class="skeleton" style="height: 40px;"></div>
+                    <div class="skeleton" style="height: 40px;"></div>
+                    <div class="skeleton" style="height: 40px;"></div>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="glass-card animate-slide-up delay-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-lg">💡</span>
+                    <h3 class="font-semibold">AI Recommendations</h3>
+                </div>
+                <div id="recommendationsContainer" class="space-y-3">
+                    <div class="skeleton" style="height: 40px;"></div>
+                    <div class="skeleton" style="height: 40px;"></div>
+                    <div class="skeleton" style="height: 40px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Review Section -->
+        <div id="reviewSection" class="hidden animate-slide-up">
+            <div class="glass-card">
+                <div class="flex items-center gap-2 mb-6">
+                    <span class="text-xl">📈</span>
+                    <h2 class="text-xl font-bold">Weekly Review</h2>
+                </div>
+
+                <div class="grid md:grid-cols-4 gap-4 mb-6">
+                    <div class="stat-card">
+                        <div id="reviewScore" class="stat-value">0</div>
+                        <div class="stat-label">Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="reviewCompleted" class="stat-value text-xl" style="-webkit-text-fill-color: #10B981;">0</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="reviewMissed" class="stat-value text-xl" style="-webkit-text-fill-color: #EF4444;">0</div>
+                        <div class="stat-label">Missed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="reviewStreak" class="stat-value text-xl">0</div>
+                        <div class="stat-label">Streak</div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="text-sm font-bold text-emerald-400 mb-2">✅ Wins</h4>
+                        <div id="reviewWins" class="space-y-1 text-sm text-slate-300"></div>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-red-400 mb-2">❌ Misses</h4>
+                        <div id="reviewLosses" class="space-y-1 text-sm text-slate-300"></div>
+                    </div>
+                </div>
+
+                <div id="reviewFocus" class="mt-4 insight-card">
+                    <span class="text-xs font-bold text-indigo-400">🎯 NEXT WEEK FOCUS</span>
+                    <p id="reviewFocusText" class="text-sm text-slate-300 mt-1"></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Mobile Nav -->
+    <div class="fixed bottom-0 left-0 right-0 bg-[#0F0F1A]/90 backdrop-blur-xl border-t border-[#2D2D4E] md:hidden z-50">
+        <div class="flex justify-around py-3">
+            <a href="dashboard.html" class="flex flex-col items-center gap-1 text-slate-400"><span>🏠</span><span class="text-[10px]">Home</span></a>
+            <a href="onboard.html" class="flex flex-col items-center gap-1 text-slate-400"><span>🧠</span><span class="text-[10px]">Dump</span></a>
+            <a href="calendar.html" class="flex flex-col items-center gap-1 text-slate-400"><span>📅</span><span class="text-[10px]">Calendar</span></a>
+            <a href="insights.html" class="flex flex-col items-center gap-1 text-indigo-400"><span>📊</span><span class="text-[10px]">Insights</span></a>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/charts.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadInsights);
+
+        async function loadInsights() {
+            try {
+                const data = await getInsights();
+                const charts = data.charts_data || {};
+                const patterns = data.patterns || {};
+                const recs = data.recommendations || [];
+
+                // Render charts
+                createWeeklyChart('weeklyChart', charts.weekly_productivity);
+                createCategoryChart('categoryChart', charts.category_distribution);
+                createCompletionChart('completionChart', charts.status_distribution);
+                createHourChart('hourChart', charts.hour_productivity);
+
+                // Render patterns
+                const patternsEl = document.getElementById('patternsContainer');
+                const patternItems = [
+                    { label: 'Most Avoided', value: patterns.most_avoided_category || 'None', icon: '🚫' },
+                    { label: 'Peak Hour', value: `${patterns.best_productivity_hour || 9}:00`, icon: '⚡' },
+                    { label: 'Power Day', value: patterns.peak_day || 'Monday', icon: '💪' },
+                    { label: 'Completion Rate', value: `${Math.round((patterns.completion_rate || 0) * 100)}%`, icon: '📊' },
+                    { label: 'Avg Postponements', value: `${patterns.avg_procrastination_days || 0}x`, icon: '⏳' },
+                ];
+
+                patternsEl.innerHTML = patternItems.map(p => `
+                    <div class="flex justify-between items-center py-2 border-b border-[#2D2D4E] last:border-0">
+                        <span class="text-sm text-slate-400">${p.icon} ${p.label}</span>
+                        <span class="text-sm font-semibold">${p.value}</span>
+                    </div>
+                `).join('');
+
+                // Chronic postponers
+                if (patterns.chronic_postponers && patterns.chronic_postponers.length > 0) {
+                    patternsEl.innerHTML += `
+                        <div class="mt-3 p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                            <span class="text-xs font-bold text-amber-400">⚠ Frequently Postponed:</span>
+                            ${patterns.chronic_postponers.map(t => `<div class="text-xs text-amber-300 mt-1">→ ${escapeHtml(t)}</div>`).join('')}
+                        </div>
+                    `;
+                }
+
+                // Render recommendations
+                const recsEl = document.getElementById('recommendationsContainer');
+                recsEl.innerHTML = recs.map((rec, i) => `
+                    <div class="insight-card animate-slide-up" style="animation-delay: ${0.1 * i}s">
+                        <p class="text-sm text-slate-300">${escapeHtml(rec)}</p>
+                    </div>
+                `).join('');
+
+                // Show intervention
+                if (data.intervention_needed && data.intervention_message) {
+                    recsEl.innerHTML = `
+                        <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-3">
+                            <span class="text-xs font-bold text-red-400">⚠️ INTERVENTION</span>
+                            <p class="text-sm text-red-300 mt-1">${escapeHtml(data.intervention_message)}</p>
+                        </div>
+                    ` + recsEl.innerHTML;
+                }
+
+            } catch (err) {
+                console.error('Failed to load insights:', err);
+                document.getElementById('patternsContainer').innerHTML =
+                    '<p class="text-sm text-slate-500">Start completing tasks to see patterns.</p>';
+                document.getElementById('recommendationsContainer').innerHTML =
+                    '<p class="text-sm text-slate-500">Complete more tasks for AI recommendations.</p>';
+
+                // Still create charts with empty data
+                createWeeklyChart('weeklyChart', [0, 0, 0, 0]);
+                createCategoryChart('categoryChart', { personal: 0 });
+                createCompletionChart('completionChart', { pending: 1 });
+                createHourChart('hourChart', {});
+            }
+        }
+
+        async function generateWeeklyReview() {
+            showToast('Generating weekly review...', 'info');
+            try {
+                const data = await generateReview();
+                const review = data.review || {};
+
+                document.getElementById('reviewSection').classList.remove('hidden');
+
+                animateCountUp(document.getElementById('reviewScore'), review.productivity_score || 0);
+                document.getElementById('reviewCompleted').textContent = review.completed_count || 0;
+                document.getElementById('reviewMissed').textContent = review.missed_count || 0;
+                document.getElementById('reviewStreak').textContent = review.streak_days || 0;
+
+                document.getElementById('reviewWins').innerHTML =
+                    (review.wins || []).map(w => `<div>${escapeHtml(w)}</div>`).join('') || '<div class="text-slate-500">No wins yet</div>';
+                document.getElementById('reviewLosses').innerHTML =
+                    (review.losses || []).map(l => `<div>${escapeHtml(l)}</div>`).join('') || '<div class="text-slate-500">No misses!</div>';
+                document.getElementById('reviewFocusText').textContent = review.next_week_focus || 'Keep going!';
+
+                // Scroll to review
+                document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth' });
+                showToast('Review generated! 📈', 'success');
+            } catch (err) {
+                showToast('Failed to generate review', 'error');
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LIFEOS Crisis Mode — Emergency battle plan for last-minute tasks.">
+    <title>🚨 CRISIS MODE — LIFEOS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="crisis-bg text-white min-h-screen">
+
+    <!-- Crisis Top Bar -->
+    <div class="bg-red-950/50 border-b border-red-500/20 px-6 py-3">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-xl animate-heartbeat">🚨</span>
+                <span class="font-bold text-red-400">CRISIS MODE</span>
+            </div>
+            <a href="dashboard.html" class="text-sm text-slate-400 hover:text-white transition-colors">
+                ✕ Exit Crisis
+            </a>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar crisis" style="position: sticky; top: 0; z-index: 40; border-radius: 0;">
+        <div id="crisisProgress" class="progress-fill" style="width: 0%;"></div>
+    </div>
+
+    <!-- Setup Phase -->
+    <div id="setupPhase" class="max-w-2xl mx-auto px-6 py-12">
+        <div class="text-center mb-8 animate-slide-up">
+            <div class="text-5xl mb-4 animate-heartbeat">⏰</div>
+            <h1 class="text-3xl font-bold text-red-400">What's the emergency?</h1>
+            <p class="text-slate-400 mt-2">Tell me what you need to finish and how much time you have.</p>
+        </div>
+
+        <div class="space-y-4 animate-slide-up delay-2">
+            <div>
+                <label class="text-sm text-slate-400 mb-1 block">Task / Assignment</label>
+                <input id="crisisTask" class="input-dark" placeholder="e.g., ML Assignment submission"
+                       style="border-color: rgba(239, 68, 68, 0.3);">
+            </div>
+            <div>
+                <label class="text-sm text-slate-400 mb-1 block">Description (optional)</label>
+                <textarea id="crisisDesc" class="input-dark" rows="2" placeholder="Any details about the task..."
+                          style="border-color: rgba(239, 68, 68, 0.3);"></textarea>
+            </div>
+            <div>
+                <label class="text-sm text-slate-400 mb-1 block">Minutes Available</label>
+                <div class="flex gap-3">
+                    <button onclick="setMinutes(30)" class="btn-ghost flex-1 border-red-500/30 text-red-300">30 min</button>
+                    <button onclick="setMinutes(60)" class="btn-ghost flex-1 border-red-500/30 text-red-300">1 hour</button>
+                    <button onclick="setMinutes(90)" class="btn-ghost flex-1 border-red-500/30 text-red-300">90 min</button>
+                    <button onclick="setMinutes(120)" class="btn-ghost flex-1 border-red-500/30 text-red-300">2 hours</button>
+                </div>
+                <input id="crisisMinutes" type="number" class="input-dark mt-2" placeholder="Or enter custom minutes"
+                       value="60" style="border-color: rgba(239, 68, 68, 0.3);">
+            </div>
+
+            <button onclick="startCrisis()" class="btn-crisis w-full justify-center py-5 text-xl mt-4">
+                ⚡ GENERATE BATTLE PLAN
+            </button>
+        </div>
+    </div>
+
+    <!-- Battle Plan Phase -->
+    <div id="battlePhase" class="hidden">
+        <div class="max-w-3xl mx-auto px-6 py-8">
+
+            <!-- Timer -->
+            <div class="text-center mb-8 animate-slide-up">
+                <div id="crisisTimer" class="crisis-timer">00:00</div>
+                <div class="text-sm text-slate-400 mt-2">
+                    <span id="survivalBadge" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold"></span>
+                </div>
+                <p id="keyStrategy" class="text-slate-400 text-sm mt-3 max-w-md mx-auto"></p>
+            </div>
+
+            <!-- Steps -->
+            <div id="stepsContainer" class="space-y-4">
+                <!-- Steps render here -->
+            </div>
+
+            <!-- AI Chat Panel -->
+            <div id="chatPanel" class="hidden mt-8 animate-slide-up">
+                <div class="chat-panel">
+                    <div class="bg-red-500/10 px-4 py-3 flex justify-between items-center">
+                        <span class="text-sm font-bold text-red-400">⚡ AI Assistant — Step <span id="chatStep"></span></span>
+                        <button onclick="closeChatPanel()" class="text-slate-400 hover:text-white">✕</button>
+                    </div>
+                    <div id="chatMessages" class="p-4 max-h-64 overflow-y-auto space-y-2">
+                        <!-- Chat messages -->
+                    </div>
+                    <div class="p-3 border-t border-[#2D2D4E] flex gap-2">
+                        <input id="chatInput" class="input-dark flex-1 text-sm" placeholder="Ask AI for help..."
+                               onkeypress="if(event.key==='Enter') sendChatMessage()"
+                               style="border-color: rgba(239, 68, 68, 0.3);">
+                        <button onclick="sendChatMessage()" class="btn-primary px-4 text-sm" style="background: linear-gradient(135deg, #EF4444, #DC2626);">
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        let crisisPlan = null;
+        let timerInterval = null;
+        let totalSeconds = 0;
+        let currentStep = 0;
+        let taskTitle = '';
+
+        // Check URL params for pre-filled task
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('task_title')) {
+                document.getElementById('crisisTask').value = params.get('task_title');
+            }
+        });
+
+        function setMinutes(mins) {
+            document.getElementById('crisisMinutes').value = mins;
+        }
+
+        async function startCrisis() {
+            taskTitle = document.getElementById('crisisTask').value.trim();
+            const desc = document.getElementById('crisisDesc').value.trim();
+            const minutes = parseInt(document.getElementById('crisisMinutes').value) || 60;
+
+            if (!taskTitle) {
+                showToast('Enter the task first!', 'warning');
+                return;
+            }
+
+            totalSeconds = minutes * 60;
+
+            try {
+                crisisPlan = await activateCrisis(taskTitle, minutes);
+            } catch (err) {
+                // Use fallback plan
+                crisisPlan = {
+                    task: taskTitle,
+                    time_available: minutes,
+                    survival_probability: 65,
+                    steps: [
+                        { step: 1, title: "Understand the requirements", duration: Math.floor(minutes * 0.1), ai_help: "Paste the requirements — I'll extract key points." },
+                        { step: 2, title: "Create outline", duration: Math.floor(minutes * 0.1), ai_help: "Tell me the topic — I'll generate a structure." },
+                        { step: 3, title: "Main content", duration: Math.floor(minutes * 0.5), ai_help: "Send what you're stuck on — I'll help." },
+                        { step: 4, title: "Review & polish", duration: Math.floor(minutes * 0.2), ai_help: "Paste your work — I'll check for gaps." },
+                        { step: 5, title: "Submit", duration: Math.floor(minutes * 0.1), ai_help: null },
+                    ],
+                };
+            }
+
+            // Show battle plan
+            document.getElementById('setupPhase').classList.add('hidden');
+            document.getElementById('battlePhase').classList.remove('hidden');
+
+            // Survival badge
+            const survival = crisisPlan.survival_probability || 65;
+            const badge = document.getElementById('survivalBadge');
+            if (survival >= 75) {
+                badge.innerHTML = `🟢 ${survival}% Survival Chance`;
+                badge.style.cssText = 'background: rgba(16, 185, 129, 0.15); color: #34D399;';
+            } else if (survival >= 50) {
+                badge.innerHTML = `🟡 ${survival}% Survival Chance`;
+                badge.style.cssText = 'background: rgba(245, 158, 11, 0.15); color: #FBBF24;';
+            } else {
+                badge.innerHTML = `🔴 ${survival}% Survival Chance`;
+                badge.style.cssText = 'background: rgba(239, 68, 68, 0.15); color: #F87171;';
+            }
+
+            // Key strategy
+            document.getElementById('keyStrategy').textContent =
+                crisisPlan.key_strategy || 'Focus on completing, not perfecting.';
+
+            // Render steps
+            renderSteps();
+
+            // Start timer
+            startTimer();
+        }
+
+        function renderSteps() {
+            const container = document.getElementById('stepsContainer');
+            const steps = crisisPlan.steps || [];
+
+            container.innerHTML = steps.map((step, i) => `
+                <div class="crisis-step ${i === 0 ? 'active' : ''}" id="step-${i}" data-step="${i}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
+                                        ${i === 0 ? 'bg-red-500 text-white' : 'bg-red-500/20 text-red-400'}"
+                                 id="stepBadge-${i}">
+                                ${step.step || i + 1}
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-sm">${escapeHtml(step.title)}</h4>
+                                <span class="text-xs text-slate-500">${step.duration} minutes</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            ${step.ai_help ? `
+                                <button onclick="openAiHelp(${i}, '${escapeHtml(step.title)}')"
+                                        class="text-xs px-3 py-1 rounded-full bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors">
+                                    ⚡ AI Help
+                                </button>
+                            ` : ''}
+                            <button onclick="completeStep(${i})"
+                                    class="text-xs px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors"
+                                    id="completeBtn-${i}">
+                                ✓ Done
+                            </button>
+                        </div>
+                    </div>
+                    ${step.ai_help ? `<p class="text-xs text-slate-500 ml-11">${escapeHtml(step.ai_help)}</p>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function completeStep(index) {
+            const stepEl = document.getElementById(`step-${index}`);
+            stepEl.classList.remove('active');
+            stepEl.classList.add('completed');
+            document.getElementById(`stepBadge-${index}`).innerHTML = '✓';
+            document.getElementById(`stepBadge-${index}`).className =
+                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-emerald-500 text-white';
+
+            // Activate next step
+            const nextStep = document.getElementById(`step-${index + 1}`);
+            if (nextStep) {
+                nextStep.classList.add('active');
+                document.getElementById(`stepBadge-${index + 1}`).className =
+                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-red-500 text-white';
+            }
+
+            // Update progress
+            const steps = crisisPlan.steps || [];
+            const completedCount = document.querySelectorAll('.crisis-step.completed').length;
+            const progress = (completedCount / steps.length) * 100;
+            document.getElementById('crisisProgress').style.width = `${progress}%`;
+
+            if (completedCount === steps.length) {
+                showToast('🎉 ALL STEPS COMPLETE! You survived!', 'success');
+                clearInterval(timerInterval);
+            }
+        }
+
+        function startTimer() {
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                totalSeconds--;
+                updateTimerDisplay();
+
+                if (totalSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    showToast("⏰ Time's up!", 'warning');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(Math.abs(totalSeconds) / 60);
+            const secs = Math.abs(totalSeconds) % 60;
+            const timer = document.getElementById('crisisTimer');
+            timer.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            // Warning animation when < 10 minutes
+            if (totalSeconds < 600 && totalSeconds > 0) {
+                timer.classList.add('warning');
+            }
+            // Overtime
+            if (totalSeconds < 0) {
+                timer.textContent = `-${timer.textContent}`;
+                timer.style.color = '#EF4444';
+            }
+        }
+
+        // AI Chat
+        function openAiHelp(stepIndex, stepTitle) {
+            currentStep = stepIndex;
+            document.getElementById('chatPanel').classList.remove('hidden');
+            document.getElementById('chatStep').textContent = stepIndex + 1;
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="chat-message assistant">
+                    I'm here to help with Step ${stepIndex + 1}: "${stepTitle}". What do you need?
+                </div>
+            `;
+            document.getElementById('chatInput').focus();
+        }
+
+        function closeChatPanel() {
+            document.getElementById('chatPanel').classList.add('hidden');
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const question = input.value.trim();
+            if (!question) return;
+
+            const messages = document.getElementById('chatMessages');
+
+            // Show user message
+            messages.innerHTML += `<div class="chat-message user">${escapeHtml(question)}</div>`;
+            input.value = '';
+
+            // Show typing indicator
+            messages.innerHTML += `<div class="chat-message assistant" id="typing">Thinking...</div>`;
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                const step = (crisisPlan.steps || [])[currentStep] || {};
+                const result = await getCrisisAssist(taskTitle, currentStep + 1, step.title || '', question);
+
+                document.getElementById('typing')?.remove();
+                messages.innerHTML += `<div class="chat-message assistant">${escapeHtml(result.assistance || 'I couldn\'t generate a response. Try rephrasing your question.')}</div>`;
+            } catch (err) {
+                document.getElementById('typing')?.remove();
+                messages.innerHTML += `<div class="chat-message assistant">Sorry, I can't connect to AI right now. Try breaking this step into the smallest possible action and just start.</div>`;
+            }
+
+            messages.scrollTop = messages.scrollHeight;
+        }
+    </script>
+
+</body>
+</html>
