@@ -3,80 +3,372 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="LIFEOS Calendar — Visual weekly schedule with color-coded tasks and drag-to-reschedule.">
+    <meta name="description" content="LIFEOS Calendar — Dark command center. Weekly schedule with AI-powered task management.">
     <title>Calendar — LIFEOS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
-</head>
-<body class="bg-[#0F0F1A] text-white min-h-screen">
+    <style>
+        /* ── FullCalendar Dark Override ── */
+        .fc {
+            --fc-border-color: rgba(45,45,78,0.6);
+            --fc-button-bg-color: rgba(26,26,46,0.8);
+            --fc-button-border-color: rgba(45,45,78,0.8);
+            --fc-button-text-color: #94A3B8;
+            --fc-button-hover-bg-color: #252540;
+            --fc-button-hover-border-color: #6366F1;
+            --fc-button-active-bg-color: #6366F1;
+            --fc-button-active-border-color: #6366F1;
+            --fc-button-active-text-color: #fff;
+            --fc-today-bg-color: rgba(99,102,241,0.07);
+            --fc-neutral-bg-color: transparent;
+            --fc-page-bg-color: transparent;
+            --fc-now-indicator-color: #6366F1;
+            font-family: 'Inter', sans-serif;
+        }
+        .fc .fc-toolbar { display: none; } /* we use custom toolbar */
+        .fc .fc-col-header-cell {
+            background: rgba(26,26,46,0.5);
+            border-color: rgba(45,45,78,0.4);
+            padding: 0.75rem 0;
+        }
+        .fc .fc-col-header-cell-cushion {
+            color: #94A3B8;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+        .fc-day-today .fc-col-header-cell-cushion {
+            color: #A5B4FC !important;
+        }
+        .fc .fc-timegrid-slot {
+            height: 3rem;
+            border-color: rgba(45,45,78,0.25);
+        }
+        .fc .fc-timegrid-slot-label {
+            color: #475569;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .fc .fc-timegrid-col { background: transparent; }
+        .fc .fc-timegrid-col.fc-day-today {
+            background: rgba(99,102,241,0.04) !important;
+        }
+        .fc .fc-event {
+            border-radius: 6px;
+            padding: 3px 6px;
+            cursor: pointer;
+            border-left-width: 3px !important;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            transition: all 0.2s ease;
+            overflow: hidden;
+        }
+        .fc .fc-event:hover {
+            transform: translateX(2px);
+            filter: brightness(1.2);
+        }
+        .fc .fc-event-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #F8FAFC;
+        }
+        .fc .fc-event-time {
+            font-size: 0.68rem;
+            color: rgba(248,250,252,0.7);
+        }
+        .fc .fc-now-indicator-line {
+            border-color: #6366F1;
+            border-width: 2px;
+            box-shadow: 0 0 8px rgba(99,102,241,0.6);
+        }
+        .fc .fc-now-indicator-arrow {
+            border-top-color: #6366F1;
+            border-bottom-color: #6366F1;
+        }
+        .fc .fc-timegrid-divider { display: none; }
+        .fc .fc-scrollgrid { border: none; }
+        .fc .fc-scrollgrid-section > td { border: none; }
+        .fc .fc-scroller { scrollbar-width: thin; scrollbar-color: #2D2D4E transparent; }
+        .fc table { border-collapse: collapse; }
+        .fc td, .fc th { border-color: rgba(45,45,78,0.25) !important; }
 
-    <!-- Nav -->
-    <nav class="bg-[#0F0F1A]/80 backdrop-blur-xl border-b border-[#2D2D4E] px-6 py-3 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-6">
+        /* Today column header glow */
+        .fc-day-today .fc-col-header-cell-cushion::after {
+            content: '';
+            display: block;
+            width: 6px; height: 6px;
+            background: #6366F1;
+            border-radius: 50%;
+            margin: 4px auto 0;
+            box-shadow: 0 0 8px #6366F1;
+        }
+
+        /* Hover empty slot */
+        .fc .fc-timegrid-col-bg .fc-highlight { background: rgba(99,102,241,0.08); }
+        .fc .fc-timegrid-slot-lane:hover { background: rgba(99,102,241,0.04); }
+
+        /* Sidebar task items */
+        .sidebar-task {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .sidebar-task:hover { background: rgba(99,102,241,0.08); border-color: rgba(99,102,241,0.2); }
+
+        /* AI insight bar */
+        .ai-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: linear-gradient(135deg, rgba(15,15,26,0.96), rgba(26,26,46,0.96));
+            border-top: 1px solid rgba(99,102,241,0.2);
+            backdrop-filter: blur(20px);
+            padding: 0.875rem 2rem;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* Hover popup */
+        #taskPopup {
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            transform: translateY(4px);
+        }
+        #taskPopup.visible {
+            pointer-events: auto;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Priority filter buttons */
+        .pf-btn {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.4rem;
+            border: 1px solid transparent;
+            background: rgba(255,255,255,0.03);
+            color: #94A3B8;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-bottom: 0.375rem;
+        }
+        .pf-btn:hover, .pf-btn.active { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.3); color: #F8FAFC; }
+        .pf-btn.filter-high.active { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); }
+        .pf-btn.filter-medium.active { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.3); }
+        .pf-btn.filter-low.active { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.3); }
+
+        /* Quick add form */
+        .quick-input {
+            background: rgba(15,15,26,0.8);
+            border: 1px solid rgba(45,45,78,0.8);
+            color: #F8FAFC;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            width: 100%;
+            margin-bottom: 0.5rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s;
+        }
+        .quick-input:focus { outline: none; border-color: #6366F1; }
+        .quick-input::placeholder { color: #475569; }
+
+        /* Section label */
+        .section-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #475569;
+            margin-bottom: 0.75rem;
+        }
+
+        /* View toggle pills */
+        .view-pill {
+            padding: 0.375rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #64748B;
+            background: transparent;
+            border: none;
+        }
+        .view-pill.active, .view-pill:hover {
+            background: rgba(99,102,241,0.2);
+            color: #A5B4FC;
+        }
+    </style>
+</head>
+<body class="bg-[#0F0F1A] text-white" style="padding-bottom: 4rem;">
+
+    <!-- ── Nav ── -->
+    <nav style="background: rgba(15,15,26,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(45,45,78,0.6);" class="px-6 py-3 sticky top-0 z-50">
+        <div class="max-w-screen-2xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-8">
                 <a href="index.html" class="flex items-center gap-2">
                     <span class="text-xl">🧠</span>
-                    <span class="font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">LIFEOS</span>
+                    <span class="font-black text-lg" style="background: linear-gradient(135deg,#818CF8,#A78BFA); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">LIFEOS</span>
                 </a>
                 <div class="hidden md:flex items-center gap-1">
                     <a href="dashboard.html" class="nav-link">Dashboard</a>
                     <a href="onboard.html" class="nav-link">Brain Dump</a>
-                    <a href="calendar.html" class="nav-link active">Calendar</a>
+                    <a href="calendar.html" class="nav-link" style="color:#A5B4FC; border-bottom: 2px solid #6366F1; border-radius:0; padding-bottom:0.35rem;">Calendar</a>
                     <a href="insights.html" class="nav-link">Insights</a>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <div class="hidden sm:flex gap-2 text-xs">
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-red-500/60 inline-block"></span> Urgent</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-500/60 inline-block"></span> Medium</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-500/60 inline-block"></span> Low</span>
-                </div>
+                <button id="todayBtn" onclick="goToday()"
+                    style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4); color: #A5B4FC; box-shadow: 0 0 12px rgba(99,102,241,0.15);"
+                    class="px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-indigo-500/25 transition-all">
+                    📍 Today
+                </button>
             </div>
         </div>
     </nav>
 
-    <!-- Calendar Container -->
-    <div class="max-w-7xl mx-auto px-6 py-8">
-        <div class="mb-6 animate-slide-up">
-            <h1 class="text-2xl font-bold">Weekly <span class="gradient-text">Calendar</span></h1>
-            <p class="text-slate-400 text-sm mt-1">Drag tasks to reschedule. Click to view details. Color = urgency level.</p>
-        </div>
-
-        <div class="glass-card animate-slide-up delay-1" style="min-height: 600px;">
-            <div id="calendar"></div>
-        </div>
-
-        <!-- Empty State -->
-        <div id="calendarEmptyHint" class="hidden mt-6 glass-card text-center py-10 animate-slide-up">
-            <div class="text-4xl mb-3">📅</div>
-            <h3 class="font-semibold mb-2">No tasks scheduled yet</h3>
-            <p class="text-sm text-slate-400 mb-4">Do a Brain Dump first — AI will extract tasks and auto-schedule them here.</p>
-            <a href="onboard.html" class="btn-primary">🧠 Brain Dump Now</a>
-        </div>
-    </div>
-
-    <!-- Task Detail Modal -->
-    <div id="taskModal" style="display: none;"
-         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-         onclick="if(event.target===this) this.style.display='none'">
-        <div class="glass-card max-w-md w-full" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="modal-title font-bold"></h3>
-                <button onclick="document.getElementById('taskModal').style.display='none'"
-                        class="text-slate-400 hover:text-white text-xl">✕</button>
+    <!-- ── Page Header ── -->
+    <div class="max-w-screen-2xl mx-auto px-6 pt-6 pb-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-black mb-1">
+                    📅 Weekly <span style="background: linear-gradient(135deg,#818CF8,#A78BFA,#EC4899); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Command Center</span>
+                </h1>
+                <p id="weekRange" class="text-sm" style="color: #6366F1;"></p>
             </div>
-            <div class="space-y-3">
-                <button onclick="handleCompleteFromModal()" class="btn-success w-full py-3">✓ Mark Complete</button>
-                <button onclick="handleCrisisFromModal()" class="btn-crisis w-full py-3 justify-center">🚨 Crisis Mode</button>
-                <button onclick="handleDeleteFromModal()" class="btn-ghost w-full py-3 text-red-400 border-red-500/30">🗑 Delete Task</button>
+            <div class="flex items-center gap-3">
+                <!-- Navigation -->
+                <button onclick="calPrev()" class="w-9 h-9 rounded-full flex items-center justify-center btn-ghost text-lg">‹</button>
+                <!-- View Toggle -->
+                <div style="background: rgba(26,26,46,0.8); border: 1px solid rgba(45,45,78,0.8); border-radius: 0.5rem; padding: 2px;" class="flex">
+                    <button class="view-pill active" id="viewWeek" onclick="switchView('timeGridWeek', this)">Week</button>
+                    <button class="view-pill" id="viewDay" onclick="switchView('timeGridDay', this)">Day</button>
+                    <button class="view-pill" id="viewList" onclick="switchView('listWeek', this)">List</button>
+                </div>
+                <button onclick="calNext()" class="w-9 h-9 rounded-full flex items-center justify-center btn-ghost text-lg">›</button>
             </div>
         </div>
     </div>
 
-    <!-- Mobile Nav -->
-    <div class="fixed bottom-0 left-0 right-0 bg-[#0F0F1A]/90 backdrop-blur-xl border-t border-[#2D2D4E] md:hidden z-50">
+    <!-- ── Two Column Layout ── -->
+    <div class="max-w-screen-2xl mx-auto px-6 pb-4 flex gap-5">
+
+        <!-- LEFT SIDEBAR -->
+        <aside style="width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 1rem;">
+
+            <!-- Section 1: Today's Focus -->
+            <div class="glass-card" style="padding: 1.25rem; border-top: 2px solid rgba(99,102,241,0.4);">
+                <div class="section-label">Today's Focus 🎯</div>
+                <div id="todayProgress" class="mb-3">
+                    <div class="flex justify-between text-xs mb-1" style="color: #64748B;">
+                        <span id="todayRemaining">Loading...</span>
+                        <span id="todayPct">0%</span>
+                    </div>
+                    <div style="background: rgba(45,45,78,0.6); border-radius: 9999px; height: 5px; overflow: hidden;">
+                        <div id="todayBar" style="height:100%; background: linear-gradient(90deg,#6366F1,#A78BFA); border-radius: 9999px; width: 0%; transition: width 0.6s ease;"></div>
+                    </div>
+                </div>
+                <div id="todayTasks" class="space-y-1">
+                    <div class="skeleton" style="height: 56px; border-radius: 0.5rem;"></div>
+                    <div class="skeleton" style="height: 56px; border-radius: 0.5rem;"></div>
+                </div>
+            </div>
+
+            <!-- Section 2: Priority Legend / Filters -->
+            <div class="glass-card" style="padding: 1.25rem;">
+                <div class="section-label">Priority Filter</div>
+                <button class="pf-btn filter-all active" id="f-all" onclick="applyFilter('all', this)">
+                    <span>⬡</span> <span>All Tasks</span>
+                </button>
+                <button class="pf-btn filter-high" id="f-high" onclick="applyFilter('high', this)">
+                    <span style="color:#EF4444;">●</span> <span>Urgent (8–10)</span>
+                </button>
+                <button class="pf-btn filter-medium" id="f-medium" onclick="applyFilter('medium', this)">
+                    <span style="color:#F59E0B;">●</span> <span>Medium (5–7)</span>
+                </button>
+                <button class="pf-btn filter-low" id="f-low" onclick="applyFilter('low', this)">
+                    <span style="color:#10B981;">●</span> <span>Low (1–4)</span>
+                </button>
+            </div>
+
+            <!-- Section 3: Quick Add -->
+            <div class="glass-card" style="padding: 1.25rem;">
+                <div class="section-label">+ Quick Add Task</div>
+                <input id="qaTitle" type="text" class="quick-input" placeholder="Task title...">
+                <input id="qaDeadline" type="datetime-local" class="quick-input" style="color-scheme: dark;">
+                <select id="qaCategory" class="quick-input" style="cursor:pointer;">
+                    <option value="personal">👤 Personal</option>
+                    <option value="academic">📚 Academic</option>
+                    <option value="career">💼 Career</option>
+                    <option value="finance">💰 Finance</option>
+                    <option value="health">🏃 Health</option>
+                </select>
+                <button onclick="quickAddTask()" class="btn-primary w-full justify-center" style="padding: 0.6rem; font-size: 0.85rem;">
+                    ⚡ Add to Calendar
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CALENDAR -->
+        <div class="flex-1 min-w-0">
+            <div class="glass-card" style="padding: 1rem; min-height: 650px;">
+                <div id="calendar"></div>
+                <!-- Empty State -->
+                <div id="calendarEmptyHint" class="hidden text-center py-16">
+                    <div class="text-5xl mb-4">📅</div>
+                    <h3 class="font-bold text-lg mb-2">Calendar is empty</h3>
+                    <p class="text-sm mb-5" style="color: #64748B;">Do a Brain Dump — AI extracts your tasks and fills this calendar automatically.</p>
+                    <a href="onboard.html" class="btn-primary">🧠 Brain Dump Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Task Hover Popup ── -->
+    <div id="taskPopup" class="fixed z-50 glass-card" style="min-width: 280px; max-width: 340px; padding: 1.25rem; pointer-events: none; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+        <div class="flex items-center gap-2 mb-3">
+            <span id="popupEmoji" class="text-xl"></span>
+            <div>
+                <h4 id="popupTitle" class="font-bold text-sm"></h4>
+                <span id="popupCategory" class="text-xs" style="color: #64748B;"></span>
+            </div>
+            <span id="popupScore" class="ml-auto text-xs font-bold px-2 py-0.5 rounded-full"></span>
+        </div>
+        <div class="space-y-1.5 mb-3 text-xs" style="color: #94A3B8;">
+            <div>⏰ <span id="popupTime"></span></div>
+            <div>⏱ <span id="popupDuration"></span></div>
+            <div id="popupDeadlineRow">📅 <span id="popupDeadline"></span></div>
+        </div>
+        <div id="popupSteps" class="mb-3 hidden">
+            <div class="section-label" style="margin-bottom: 0.4rem;">AI Steps</div>
+            <div id="popupStepsList" class="space-y-1 text-xs" style="color: #94A3B8;"></div>
+        </div>
+        <div class="flex gap-2 pointer-events-auto">
+            <button id="popupComplete" class="btn-success flex-1 py-2 text-xs">✓ Complete</button>
+            <button id="popupCrisis" class="btn-crisis flex-1 py-2 justify-center text-xs" style="font-size:0.75rem;">🚨 Crisis</button>
+        </div>
+    </div>
+
+    <!-- ── Mobile Nav ── -->
+    <div class="fixed bottom-12 left-0 right-0 bg-[#0F0F1A]/90 backdrop-blur-xl border-t border-[#2D2D4E] md:hidden z-30">
         <div class="flex justify-around py-3">
             <a href="dashboard.html" class="flex flex-col items-center gap-1 text-slate-400"><span>🏠</span><span class="text-[10px]">Home</span></a>
             <a href="onboard.html" class="flex flex-col items-center gap-1 text-slate-400"><span>🧠</span><span class="text-[10px]">Dump</span></a>
@@ -85,47 +377,144 @@
         </div>
     </div>
 
+    <!-- ── AI Insight Bar ── -->
+    <div class="ai-bar">
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#6366F1,#A78BFA); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem; box-shadow: 0 0 12px rgba(99,102,241,0.4);">🤖</div>
+        <p id="aiInsightText" class="text-sm" style="color: #94A3B8;">
+            <span style="color: #A5B4FC; font-weight: 600;">LIFEOS says: </span>
+            <span id="aiInsightMsg">Analyzing your schedule...</span>
+        </p>
+    </div>
+
     <script src="js/app.js"></script>
     <script src="js/calendar.js"></script>
     <script>
+        let _allTasks = [];
+        let _activeFilter = 'all';
+
         document.addEventListener('DOMContentLoaded', async () => {
+            updateWeekRange();
             initCalendar('calendar');
-            await loadCalendarEvents();
+            _allTasks = await loadCalendarEvents();
+            renderSidebar(_allTasks);
+            updateAIInsight(_allTasks);
         });
 
-        function handleCompleteFromModal() {
-            const modal = document.getElementById('taskModal');
-            const taskId = modal.dataset.taskId;
-            if (taskId) {
-                handleCompleteTask(taskId);
-                modal.style.display = 'none';
-                setTimeout(() => loadCalendarEvents(), 500);
+        function updateWeekRange() {
+            const now = new Date();
+            const start = new Date(now);
+            start.setDate(now.getDate() - now.getDay() + 1);
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            document.getElementById('weekRange').textContent = `${fmt(start)} – ${fmt(end)}`;
+        }
+
+        function calPrev() { calendar.prev(); updateWeekRange(); }
+        function calNext() { calendar.next(); updateWeekRange(); }
+        function goToday() { calendar.today(); updateWeekRange(); }
+
+        function switchView(view, btn) {
+            calendar.changeView(view);
+            document.querySelectorAll('.view-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function applyFilter(level, btn) {
+            _activeFilter = level;
+            document.querySelectorAll('.pf-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            calendar.getEvents().forEach(ev => {
+                const score = ev.extendedProps.priority_score || 5;
+                const isHigh = score >= 8, isMedium = score >= 5 && score < 8;
+                let show = true;
+                if (level === 'high') show = isHigh;
+                else if (level === 'medium') show = isMedium;
+                else if (level === 'low') show = score < 5;
+                ev.setProp('display', show ? 'auto' : 'none');
+            });
+        }
+
+        // ─ Sidebar ─
+        function renderSidebar(tasks) {
+            const pending = tasks.filter(t => t.status !== 'completed');
+            const total = tasks.length || 1;
+            const done = tasks.filter(t => t.status === 'completed').length;
+            const pct = Math.round((done / total) * 100);
+
+            document.getElementById('todayRemaining').textContent = `${pending.length} tasks remaining`;
+            document.getElementById('todayPct').textContent = `${pct}%`;
+            document.getElementById('todayBar').style.width = pct + '%';
+
+            const container = document.getElementById('todayTasks');
+            const top3 = [...pending].sort((a, b) => (b.priority_score || 5) - (a.priority_score || 5)).slice(0, 5);
+
+            if (!top3.length) {
+                container.innerHTML = `<p class="text-xs" style="color:#64748B;">No pending tasks 🎉</p>`;
+                return;
+            }
+
+            container.innerHTML = top3.map(task => {
+                const score = task.priority_score || 5;
+                const dot = score >= 8 ? '#EF4444' : score >= 5 ? '#F59E0B' : '#10B981';
+                const border = `border-left: 3px solid ${dot};`;
+                const dl = getDeadlineText(task.deadline);
+                const safeTitle = JSON.stringify(task.title || '');
+                const safeId = JSON.stringify(task._id || '');
+                return `
+                <div class="sidebar-task" style="${border}" onclick="handleCrisisMode(${safeId}, ${safeTitle})">
+                    <span style="color:${dot}; font-size:0.6rem; margin-top:4px;">●</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold truncate" style="color:#F8FAFC;">${escapeHtml(task.title)}</p>
+                        <p class="text-xs mt-0.5" style="color:#64748B;">${dl}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ─ Quick Add ─
+        async function quickAddTask() {
+            const title = document.getElementById('qaTitle').value.trim();
+            if (!title) { showToast('Enter a task title!', 'warning'); return; }
+            const deadline = document.getElementById('qaDeadline').value;
+            const category = document.getElementById('qaCategory').value;
+
+            try {
+                await api.post('/brain-dump', {
+                    text: `${title}${deadline ? ' due ' + deadline : ''}`,
+                    user_id: 'lifeos_user_1',
+                });
+                document.getElementById('qaTitle').value = '';
+                document.getElementById('qaDeadline').value = '';
+                showToast('Task added! 🎉');
+                _allTasks = await loadCalendarEvents();
+                renderSidebar(_allTasks);
+                updateAIInsight(_allTasks);
+            } catch {
+                showToast('Failed to add task', 'error');
             }
         }
 
-        function handleCrisisFromModal() {
-            const modal = document.getElementById('taskModal');
-            const taskId = modal.dataset.taskId;
-            const title = modal.querySelector('.modal-title').textContent;
-            modal.style.display = 'none';
-            handleCrisisMode(taskId, title);
-        }
+        // ─ AI Insight Bar ─
+        function updateAIInsight(tasks) {
+            const pending = tasks.filter(t => t.status !== 'completed');
+            const urgent = pending.filter(t => (t.priority_score || 5) >= 8);
+            const now = new Date();
+            const hour = now.getHours();
+            const timeGreet = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
 
-        async function handleDeleteFromModal() {
-            const modal = document.getElementById('taskModal');
-            const taskId = modal.dataset.taskId;
-            if (taskId) {
-                try {
-                    await deleteTask(taskId);
-                    showToast('Task deleted');
-                    modal.style.display = 'none';
-                    loadCalendarEvents();
-                } catch (err) {
-                    showToast('Failed to delete', 'error');
-                }
+            let msg;
+            if (!pending.length) {
+                msg = `You're all caught up! Great ${timeGreet}. Consider doing a Brain Dump to plan your next tasks.`;
+            } else if (urgent.length > 0) {
+                const topTask = urgent.sort((a, b) => (b.priority_score || 5) - (a.priority_score || 5))[0];
+                msg = `You have ${urgent.length} urgent task${urgent.length > 1 ? 's' : ''} right now. "${escapeHtml(topTask.title)}" needs your attention first — don't let it slip.`;
+            } else {
+                msg = `${pending.length} tasks on your plate this ${timeGreet}. Your highest priority: "${escapeHtml(pending[0].title)}". You got this.`;
             }
+            document.getElementById('aiInsightMsg').textContent = msg;
         }
     </script>
-
 </body>
 </html>

@@ -39,13 +39,63 @@
                 </div>
 
                 <!-- Date -->
-                <div class="text-right">
+                <div class="text-right hidden sm:block">
                     <div id="currentDate" class="text-xs text-slate-500"></div>
                     <div id="greeting" class="text-sm font-semibold"></div>
+                </div>
+
+                <!-- User Avatar (Google OAuth) -->
+                <div id="userAvatar" class="relative hidden" style="cursor:pointer;" onclick="toggleUserMenu()">
+                    <img id="userPhoto" src="" alt="User"
+                         style="width:34px;height:34px;border-radius:50%;border:2px solid rgba(99,102,241,0.5);object-fit:cover;">
+                    <!-- Dropdown -->
+                    <div id="userMenu" style="display:none; position:absolute; right:0; top:calc(100% + 8px);
+                         background: rgba(26,26,46,0.98); border:1px solid rgba(45,45,78,0.8); border-radius:12px;
+                         padding:0.75rem; min-width:200px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); z-index:100;
+                         backdrop-filter: blur(20px);">
+                        <p id="userName" style="font-size:0.85rem;font-weight:600;color:#F8FAFC;margin-bottom:0.25rem;"></p>
+                        <p id="userEmail" style="font-size:0.72rem;color:#64748B;margin-bottom:0.75rem;overflow:hidden;text-overflow:ellipsis;"></p>
+                        <a href="/auth/logout"
+                           style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;border-radius:8px;
+                                  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);
+                                  color:#F87171;font-size:0.78rem;font-weight:600;text-decoration:none;transition:all 0.2s;"
+                           onmouseover="this.style.background='rgba(239,68,68,0.2)'"
+                           onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+                            🚪 Sign Out
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
+
+    <script>
+        // Load user from session
+        fetch('/auth/me').then(r => r.json()).then(data => {
+            if (data.user) {
+                const av = document.getElementById('userAvatar');
+                document.getElementById('userPhoto').src = data.user.picture || '';
+                document.getElementById('userName').textContent = data.user.name || '';
+                document.getElementById('userEmail').textContent = data.user.email || '';
+                av.classList.remove('hidden');
+                // Update greeting with user's first name
+                const firstName = (data.user.name || '').split(' ')[0];
+                const gr = document.getElementById('greeting');
+                if (gr && firstName) gr.textContent = gr.textContent.replace(/!$/, `, ${firstName}!`);
+            }
+        }).catch(() => {});
+
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('userAvatar')?.contains(e.target)) {
+                const menu = document.getElementById('userMenu');
+                if (menu) menu.style.display = 'none';
+            }
+        });
+    </script>
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-6 py-8">

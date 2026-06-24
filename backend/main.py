@@ -95,6 +95,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ─── Session Middleware (for OAuth) ───
+from starlette.middleware.sessions import SessionMiddleware
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+
 # ─── Frontend path ───
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
 
@@ -103,11 +107,13 @@ from routes.tasks import router as tasks_router
 from routes.agent import router as agent_router
 from routes.crisis import router as crisis_router
 from routes.insights import router as insights_router
+from routes.auth import router as auth_router
 
 app.include_router(tasks_router, prefix="/api", tags=["Tasks"])
 app.include_router(agent_router, prefix="/api", tags=["Agent"])
 app.include_router(crisis_router, prefix="/api", tags=["Crisis"])
 app.include_router(insights_router, prefix="/api", tags=["Insights"])
+app.include_router(auth_router, tags=["Auth"])
 
 
 # ─── Health Check ───

@@ -1,27 +1,40 @@
 /**
- * LIFEOS — FullCalendar.js Setup
- * Calendar view with color-coded task events.
+ * LIFEOS — Premium Calendar JS
+ * FullCalendar with hover popups, priority filtering, and dark command center theme.
  */
 
 let calendar = null;
+let _popupTimeout = null;
+let _calTasks = [];
+
+// ─── Category helpers ───
+function getCategoryEmoji(cat) {
+    return { academic: '📚', career: '💼', finance: '💰', personal: '👤', health: '🏃' }[cat] || '📋';
+}
+function getPriorityColor(score) {
+    if (score >= 8) return '#EF4444';
+    if (score >= 5) return '#F59E0B';
+    return '#10B981';
+}
+function getPriorityLabel(score) {
+    if (score >= 8) return 'URGENT';
+    if (score >= 5) return 'MEDIUM';
+    return 'LOW';
+}
 
 /**
- * Initialize FullCalendar with task events.
+ * Initialize FullCalendar.
  */
 function initCalendar(elementId) {
     const calendarEl = document.getElementById(elementId);
     if (!calendarEl || typeof FullCalendar === 'undefined') {
-        console.error('FullCalendar not loaded or element not found');
+        console.error('FullCalendar not loaded or element missing');
         return;
     }
 
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'timeGridWeek',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'timeGridWeek,timeGridDay,listWeek',
-        },
+        headerToolbar: false, // Using custom toolbar
         slotMinTime: '06:00:00',
         slotMaxTime: '23:00:00',
         allDaySlot: false,
@@ -31,155 +44,240 @@ function initCalendar(elementId) {
         selectable: true,
         height: 'auto',
         expandRows: true,
+        dayHeaderFormat: { weekday: 'short', day: 'numeric' },
+        slotLabelFormat: { hour: 'numeric', minute: '2-digit', hour12: true },
 
-        // Theme
-        themeSystem: 'standard',
+        // Custom event rendering — premium cards
+        eventContent: (arg) => {
+            const props = arg.event.extendedProps;
+            const score = props.priority_score || 5;
+            const color = getPriorityColor(score);
+            const emoji = getCategoryEmoji(props.category);
+            const start = arg.event.start;
+            const timeStr = start ? start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
 
-        // Event colors by priority
-        eventDidMount: (info) => {
-            const priority = info.event.extendedProps.priority_score || 5;
-            if (priority >= 8) {
-                info.el.style.borderLeft = '3px solid #EF4444';
-            } else if (priority >= 5) {
-                info.el.style.borderLeft = '3px solid #F59E0B';
-            } else {
-                info.el.style.borderLeft = '3px solid #10B981';
-            }
-            info.el.style.fontSize = '0.8rem';
+            return {
+                html: `
+                    <div style="
+                        padding: 3px 6px;
+                        height: 100%;
+                        border-left: 3px solid ${color};
+                        background: ${color}18;
+                        border-radius: 5px;
+                        overflow: hidden;
+                    ">
+                        <div style="font-size:0.75rem; font-weight:700; color:#F8FAFC; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            ${emoji} ${escapeHtml(props.task_title || arg.event.title.replace(/^[^\s]+\s/, ''))}
+                        </div>
+                        <div style="font-size:0.65rem; color:rgba(248,250,252,0.55); margin-top:1px;">${timeStr} · ${props.category || 'task'}</div>
+                    </div>
+                `
+            };
         },
 
-        // Event click — open edit modal
+        // Mouse enter — show popup
+        eventMouseEnter: (info) => {
+            clearTimeout(_popupTimeout);
+            showEventPopup(info);
+        },
+
+        // Mouse leave — hide popup with delay
+        eventMouseLeave: () => {
+            _popupTimeout = setTimeout(() => hidePopup(), 300);
+        },
+
+        // Click — complete or crisis
         eventClick: (info) => {
-            const taskId = info.event.extendedProps.task_id;
-            const title = info.event.title;
-            if (taskId) {
-                showTaskModal(taskId, title);
-            }
+            const props = info.event.extendedProps;
+            if (props.task_id) showTaskModal(props.task_id, props.task_title || info.event.title);
         },
 
-        // Event drag — update task time
+        // Drag — reschedule
         eventDrop: async (info) => {
-            const taskId = info.event.extendedProps.task_id;
-            if (taskId) {
+            const props = info.event.extendedProps;
+            if (props.task_id) {
                 try {
-                    const newDate = info.event.start.toISOString().split('T')[0];
-                    await api.put(`/tasks/${taskId}`, { deadline: newDate });
+                    const newDate = info.event.start.toISOString();
+                    await api.put(`/tasks/${props.task_id}`, { deadline: newDate });
                     showToast('Task rescheduled! 📅');
-                } catch (err) {
+                } catch {
                     info.revert();
                     showToast('Failed to reschedule', 'error');
                 }
             }
         },
 
-        // Custom styling
-        dayHeaderFormat: { weekday: 'short', day: 'numeric' },
-        slotLabelFormat: { hour: 'numeric', minute: '2-digit', hour12: true },
+        // Click on empty slot — quick add
+        select: (info) => {
+            const titleInput = document.getElementById('qaTitle');
+            const deadlineInput = document.getElementById('qaDeadline');
+            if (titleInput) titleInput.focus();
+            if (deadlineInput) {
+                const d = info.start;
+                const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+                deadlineInput.value = local.toISOString().slice(0, 16);
+            }
+        },
     });
 
     calendar.render();
-
-    // Apply dark theme styles
-    applyCalendarTheme();
-
     return calendar;
 }
 
 /**
- * Load tasks into calendar as events.
+ * Load all tasks into calendar.
+ * Returns the raw task array for sidebar use.
  */
 async function loadCalendarEvents() {
-    if (!calendar) return;
+    if (!calendar) return [];
 
     try {
         const data = await getTasks();
         const tasks = data.tasks || [];
+        _calTasks = tasks;
 
-        // Remove existing events
         calendar.getEvents().forEach(e => e.remove());
+        const emptyHint = document.getElementById('calendarEmptyHint');
 
         const pending = tasks.filter(t => t.status !== 'completed');
 
         if (pending.length === 0) {
-            // Show empty state hint on calendar
-            const el = document.getElementById('calendarEmptyHint');
-            if (el) el.classList.remove('hidden');
-            return;
+            if (emptyHint) emptyHint.classList.remove('hidden');
+            return tasks;
         }
+        if (emptyHint) emptyHint.classList.add('hidden');
 
-        // Spread tasks across the week intelligently
         const now = new Date();
         const weekStart = new Date(now);
         weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
         weekStart.setHours(9, 0, 0, 0);
 
         pending.forEach((task, idx) => {
-            const priority = task.priority_score || 5;
-            let color = '#6366F1';
-            if (priority >= 8) color = '#EF4444';
-            else if (priority >= 5) color = '#F59E0B';
-            else color = '#10B981';
+            const score = task.priority_score || 5;
+            const color = getPriorityColor(score);
 
             let startDate;
             if (task.deadline && task.deadline !== 'unknown' && task.deadline !== 'overdue') {
                 try {
-                    startDate = new Date(task.deadline);
-                    // if date is in the past, push to today
-                    if (startDate < now) {
-                        startDate = new Date(now);
-                        startDate.setHours(9 + (idx % 8), 0, 0, 0);
+                    const d = new Date(task.deadline);
+                    if (!isNaN(d.getTime())) {
+                        // Push past dates to current week
+                        startDate = d < now
+                            ? (() => { const s = new Date(now); s.setHours(9 + (idx * 2) % 10, 0, 0, 0); return s; })()
+                            : d;
                     }
-                } catch { startDate = null; }
+                } catch { /* fall through */ }
             }
 
             if (!startDate) {
-                // Spread tasks Mon–Fri based on priority (high priority = earlier)
-                const dayOffset = Math.floor(idx % 5); // 0=Mon … 4=Fri
-                const hourOffset = 9 + Math.floor((idx / 5) % 4) * 2; // 9,11,13,15
+                // Spread across Mon–Fri, 9am–3pm
+                const dayOff = idx % 5;
+                const hourOff = 9 + Math.floor((idx / 5) % 4) * 2;
                 startDate = new Date(weekStart);
-                startDate.setDate(weekStart.getDate() + dayOffset);
-                startDate.setHours(hourOffset, 0, 0, 0);
+                startDate.setDate(weekStart.getDate() + dayOff);
+                startDate.setHours(hourOff, 0, 0, 0);
             }
 
             const hours = task.estimated_hours || 1;
-            const endDate = new Date(startDate.getTime() + hours * 60 * 60 * 1000);
+            const endDate = new Date(startDate.getTime() + hours * 3600 * 1000);
 
             calendar.addEvent({
                 title: `${getCategoryEmoji(task.category)} ${task.title}`,
                 start: startDate,
                 end: endDate,
-                backgroundColor: color + '30',
+                backgroundColor: color + '18',
                 borderColor: color,
                 textColor: '#F8FAFC',
                 extendedProps: {
                     task_id: task._id,
-                    priority_score: priority,
+                    priority_score: score,
                     category: task.category,
                     task_title: task.title,
+                    deadline: task.deadline,
+                    estimated_hours: task.estimated_hours || 1,
                 },
             });
         });
+
+        return tasks;
     } catch (err) {
-        console.error('Failed to load calendar events:', err);
+        console.error('loadCalendarEvents error:', err);
+        return [];
     }
 }
 
 /**
- * Get emoji for category.
+ * Show hover popup for an event.
  */
-function getCategoryEmoji(category) {
-    const emojis = {
-        academic: '📚',
-        career: '💼',
-        finance: '💰',
-        personal: '👤',
-        health: '🏃',
+function showEventPopup(info) {
+    const popup = document.getElementById('taskPopup');
+    if (!popup) return;
+
+    const props = info.event.extendedProps;
+    const score = props.priority_score || 5;
+    const color = getPriorityColor(score);
+    const emoji = getCategoryEmoji(props.category);
+
+    // Populate fields
+    document.getElementById('popupEmoji').textContent = emoji;
+    document.getElementById('popupTitle').textContent = props.task_title || info.event.title;
+    document.getElementById('popupCategory').textContent = (props.category || 'personal').charAt(0).toUpperCase() + (props.category || 'personal').slice(1);
+
+    const scoreEl = document.getElementById('popupScore');
+    scoreEl.textContent = `${score.toFixed(1)} / 10`;
+    scoreEl.style.background = color + '20';
+    scoreEl.style.color = color;
+
+    const start = info.event.start;
+    const end = info.event.end;
+    const fmtTime = d => d ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
+    document.getElementById('popupTime').textContent = `${fmtTime(start)} – ${fmtTime(end)}`;
+    document.getElementById('popupDuration').textContent = `${props.estimated_hours || 1} hour${(props.estimated_hours || 1) !== 1 ? 's' : ''}`;
+
+    const dl = props.deadline;
+    const dlEl = document.getElementById('popupDeadlineRow');
+    if (dl && dl !== 'unknown' && dl !== 'overdue') {
+        dlEl.classList.remove('hidden');
+        document.getElementById('popupDeadline').textContent = getDeadlineText(dl);
+    } else {
+        dlEl.classList.add('hidden');
+    }
+
+    // Wire buttons
+    document.getElementById('popupComplete').onclick = () => {
+        handleCompleteTask(props.task_id);
+        hidePopup();
+        setTimeout(() => { loadCalendarEvents().then(t => { renderSidebar(t); updateAIInsight(t); }); }, 600);
     };
-    return emojis[category] || '📋';
+    document.getElementById('popupCrisis').onclick = () => {
+        handleCrisisMode(props.task_id, props.task_title);
+        hidePopup();
+    };
+
+    // Position popup near event
+    const rect = info.el.getBoundingClientRect();
+    const popupW = 320;
+    let left = rect.right + 10;
+    if (left + popupW > window.innerWidth - 20) left = rect.left - popupW - 10;
+    let top = rect.top + window.scrollY;
+    if (top + 300 > window.innerHeight + window.scrollY) top = Math.max(10, window.innerHeight + window.scrollY - 310);
+
+    popup.style.left = `${left}px`;
+    popup.style.top = `${top}px`;
+    popup.classList.add('visible');
+
+    // Keep popup open if hovering it
+    popup.onmouseenter = () => clearTimeout(_popupTimeout);
+    popup.onmouseleave = () => { _popupTimeout = setTimeout(hidePopup, 150); };
+}
+
+function hidePopup() {
+    const popup = document.getElementById('taskPopup');
+    if (popup) popup.classList.remove('visible');
 }
 
 /**
- * Show task edit modal.
+ * Show task modal (for click action).
  */
 function showTaskModal(taskId, title) {
     const modal = document.getElementById('taskModal');
@@ -188,33 +286,4 @@ function showTaskModal(taskId, title) {
         modal.dataset.taskId = taskId;
         modal.style.display = 'flex';
     }
-}
-
-/**
- * Apply dark theme to FullCalendar.
- */
-function applyCalendarTheme() {
-    const style = document.createElement('style');
-    style.textContent = `
-        .fc {
-            --fc-border-color: #2D2D4E;
-            --fc-button-bg-color: #1A1A2E;
-            --fc-button-border-color: #2D2D4E;
-            --fc-button-text-color: #F8FAFC;
-            --fc-button-hover-bg-color: #252540;
-            --fc-button-hover-border-color: #6366F1;
-            --fc-button-active-bg-color: #6366F1;
-            --fc-button-active-border-color: #6366F1;
-            --fc-today-bg-color: rgba(99, 102, 241, 0.08);
-            --fc-neutral-bg-color: #0F0F1A;
-            --fc-page-bg-color: #0F0F1A;
-            --fc-now-indicator-color: #EF4444;
-        }
-        .fc .fc-timegrid-slot { height: 3rem; }
-        .fc .fc-col-header-cell { background: #1A1A2E; }
-        .fc .fc-timegrid-col { background: transparent; }
-        .fc .fc-event { border-radius: 4px; padding: 2px 4px; }
-        .fc .fc-toolbar-title { font-size: 1.2rem; font-weight: 600; }
-    `;
-    document.head.appendChild(style);
 }
