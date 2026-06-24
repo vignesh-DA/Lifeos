@@ -527,6 +527,28 @@ textarea.input-dark {
     50% { opacity: 0.7; }
 }
 
+@keyframes mic-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70%  { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Mic button active/listening state */
+.mood-btn.active {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-color: #EF4444 !important;
+    animation: mic-pulse 1s infinite !important;
+}
+
+/* Smooth page load */
+body {
+    animation: fadeInPage 0.3s ease-in;
+}
+@keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes blink-urgent {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }

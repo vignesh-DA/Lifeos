@@ -27,7 +27,7 @@ function initVoiceInput(textareaId, statusId, btnId) {
     recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'en-US';
+    recognition.lang = 'en-IN'; // Indian English
 
     const textarea = document.getElementById(textareaId);
     const status = document.getElementById(statusId);

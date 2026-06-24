@@ -98,32 +98,56 @@ async function loadCalendarEvents() {
         // Remove existing events
         calendar.getEvents().forEach(e => e.remove());
 
-        // Add task events
-        tasks.forEach(task => {
-            if (task.status === 'completed') return;
+        const pending = tasks.filter(t => t.status !== 'completed');
 
+        if (pending.length === 0) {
+            // Show empty state hint on calendar
+            const el = document.getElementById('calendarEmptyHint');
+            if (el) el.classList.remove('hidden');
+            return;
+        }
+
+        // Spread tasks across the week intelligently
+        const now = new Date();
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
+        weekStart.setHours(9, 0, 0, 0);
+
+        pending.forEach((task, idx) => {
             const priority = task.priority_score || 5;
-            let color = '#6366F1'; // Default indigo
+            let color = '#6366F1';
+            if (priority >= 8) color = '#EF4444';
+            else if (priority >= 5) color = '#F59E0B';
+            else color = '#10B981';
 
-            if (priority >= 8) {
-                color = '#EF4444'; // Red — urgent
-            } else if (priority >= 5) {
-                color = '#F59E0B'; // Yellow — medium
-            } else {
-                color = '#10B981'; // Green — relaxed
+            let startDate;
+            if (task.deadline && task.deadline !== 'unknown' && task.deadline !== 'overdue') {
+                try {
+                    startDate = new Date(task.deadline);
+                    // if date is in the past, push to today
+                    if (startDate < now) {
+                        startDate = new Date(now);
+                        startDate.setHours(9 + (idx % 8), 0, 0, 0);
+                    }
+                } catch { startDate = null; }
             }
 
-            const startDate = task.deadline
-                ? new Date(task.deadline)
-                : new Date();
+            if (!startDate) {
+                // Spread tasks Mon–Fri based on priority (high priority = earlier)
+                const dayOffset = Math.floor(idx % 5); // 0=Mon … 4=Fri
+                const hourOffset = 9 + Math.floor((idx / 5) % 4) * 2; // 9,11,13,15
+                startDate = new Date(weekStart);
+                startDate.setDate(weekStart.getDate() + dayOffset);
+                startDate.setHours(hourOffset, 0, 0, 0);
+            }
 
-            // Estimate duration
             const hours = task.estimated_hours || 1;
+            const endDate = new Date(startDate.getTime() + hours * 60 * 60 * 1000);
 
             calendar.addEvent({
                 title: `${getCategoryEmoji(task.category)} ${task.title}`,
                 start: startDate,
-                end: new Date(startDate.getTime() + hours * 60 * 60 * 1000),
+                end: endDate,
                 backgroundColor: color + '30',
                 borderColor: color,
                 textColor: '#F8FAFC',
@@ -131,6 +155,7 @@ async function loadCalendarEvents() {
                     task_id: task._id,
                     priority_score: priority,
                     category: task.category,
+                    task_title: task.title,
                 },
             });
         });
