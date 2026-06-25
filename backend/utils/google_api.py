@@ -200,12 +200,13 @@ async def create_gmail_draft(user_id: str, to: str, subject: str, body: str) -> 
 
     # Construct clean MIME message string
     mime_parts = [
-        f"To: {to}",
         f"Subject: {subject}",
         "Content-Type: text/plain; charset=utf-8",
         "",
         body
     ]
+    if "@" in to:
+        mime_parts.insert(0, f"To: {to}")
     mime_message = "\n".join(mime_parts)
     
     # Base64url encode the MIME payload (remove padding, swap chars)
