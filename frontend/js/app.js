@@ -438,3 +438,86 @@ function getCurrentDateInfo() {
         greeting: now.getHours() < 12 ? 'Good Morning' : now.getHours() < 17 ? 'Good Afternoon' : 'Good Evening',
     };
 }
+
+// ─── Notification Service ───
+const NotificationService = {
+    initialized: false,
+    intervalId: null,
+
+    init() {
+        if (!('Notification' in window)) return;
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+        if (!this.initialized) {
+            this.intervalId = setInterval(() => this.checkTasks(), 60000); // Check every minute
+            this.initialized = true;
+            // Check immediately on load after a short delay to allow tasks to load
+            setTimeout(() => this.checkTasks(), 5000);
+        }
+    },
+
+    async checkTasks() {
+        if (Notification.permission !== 'granted') return;
+        if (!DEFAULT_USER_ID) return;
+
+        try {
+            const data = await getTasks();
+            const tasks = data.tasks || [];
+            const now = new Date();
+            
+            // Get already notified tasks from localStorage
+            const notifiedTasksStr = localStorage.getItem('notified_tasks');
+            const notifiedTasks = notifiedTasksStr ? JSON.parse(notifiedTasksStr) : {};
+
+            let newNotifications = 0;
+
+            tasks.forEach(task => {
+                if (task.status === 'completed' || !task.deadline) return;
+
+                const deadline = new Date(task.deadline);
+                const timeDiff = deadline - now;
+                const minutesDiff = timeDiff / (1000 * 60);
+
+                let shouldNotify = false;
+                let title = '';
+                let body = '';
+
+                if (minutesDiff < 0 && minutesDiff > -60 && !notifiedTasks[`${task._id}_overdue`]) {
+                    // Just became overdue (within the last hour)
+                    shouldNotify = true;
+                    title = '🚨 Task Overdue!';
+                    body = `"${task.title}" is now overdue.`;
+                    notifiedTasks[`${task._id}_overdue`] = true;
+                } else if (minutesDiff > 0 && minutesDiff <= 15 && !notifiedTasks[`${task._id}_15min`]) {
+                    // Due in <= 15 mins
+                    shouldNotify = true;
+                    title = '⏰ Task Due Soon!';
+                    body = `"${task.title}" is due in ${Math.ceil(minutesDiff)} minutes.`;
+                    notifiedTasks[`${task._id}_15min`] = true;
+                }
+
+                if (shouldNotify && newNotifications < 3) {
+                    new Notification(title, {
+                        body: body,
+                        icon: '/favicon.ico' // Or any suitable icon
+                    });
+                    newNotifications++;
+                }
+            });
+
+            localStorage.setItem('notified_tasks', JSON.stringify(notifiedTasks));
+
+        } catch (err) {
+            console.error('Failed to check tasks for notifications:', err);
+        }
+    }
+};
+
+// Initialize NotificationService when the DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Only init if we are on a page that tracks tasks (like dashboard or calendar)
+    if (window.location.pathname.includes('dashboard') || window.location.pathname.includes('calendar') || window.location.pathname === '/') {
+        NotificationService.init();
+    }
+});

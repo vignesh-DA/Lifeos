@@ -487,7 +487,12 @@
                     document.getElementById('emailPreviewBody').textContent = `Subject: ${response.subject}\n\n${response.body}`;
                     currentDraftBody = response.body;
                     document.getElementById('pushToGmailBtn').innerHTML = '<span>🔗</span> Connect Gmail to auto-push';
-                    document.getElementById('pushToGmailBtn').onclick = () => window.location.href = '/auth/login?scope=gmail&redirect_url=' + encodeURIComponent(window.location.pathname + window.location.search);
+                    document.getElementById('pushToGmailBtn').onclick = () => {
+                        localStorage.setItem('pending_gmail_subject', response.subject);
+                        localStorage.setItem('pending_gmail_body', response.body);
+                        localStorage.setItem('pending_gmail_recipient', document.getElementById('emailRecipient').value);
+                        window.location.href = '/auth/login?scope=gmail&redirect_url=' + encodeURIComponent(window.location.pathname + window.location.search);
+                    };
                 }
 
             } catch (err) {
@@ -500,9 +505,45 @@
         }
         
         // Ensure DEFAULT_USER_ID is set via auth/me if possible
-        fetch('/auth/me').then(r => r.json()).then(data => {
+        fetch('/auth/me').then(r => r.json()).then(async data => {
             if (data.user && data.user.google_id) {
                 window.DEFAULT_USER_ID = data.user.google_id;
+                
+                // Check if there is a pending draft to push
+                const pendingSubject = localStorage.getItem('pending_gmail_subject');
+                if (pendingSubject) {
+                    const pendingBody = localStorage.getItem('pending_gmail_body');
+                    const pendingRecipient = localStorage.getItem('pending_gmail_recipient');
+                    localStorage.removeItem('pending_gmail_subject');
+                    localStorage.removeItem('pending_gmail_body');
+                    localStorage.removeItem('pending_gmail_recipient');
+
+                    showToast("Pushing drafted email to Gmail...", "info");
+                    try {
+                        const res = await api.post('/crisis/push-draft', {
+                            user_id: window.DEFAULT_USER_ID,
+                            recipient: pendingRecipient,
+                            subject: pendingSubject,
+                            body: pendingBody
+                        });
+                        if (res.success) {
+                            showToast("Draft synced to Gmail!", "success");
+                            // Reveal email preview box
+                            document.getElementById('emailPreviewBox').classList.remove('hidden');
+                            document.getElementById('emailPreviewBody').textContent = "Draft successfully created in your Gmail account!";
+                            document.getElementById('pushToGmailBtn').innerHTML = '<span>↗️</span> Open Gmail Drafts';
+                            document.getElementById('pushToGmailBtn').onclick = () => window.open(res.draft_url, '_blank');
+                            
+                            // Auto open in a new tab if popup is allowed
+                            setTimeout(() => { window.open(res.draft_url, '_blank'); }, 500);
+                        } else {
+                            showToast("Failed to push draft to Gmail.", "error");
+                        }
+                    } catch(e) {
+                        console.error("Failed to push draft:", e);
+                        showToast("Error pushing draft.", "error");
+                    }
+                }
             }
         }).catch(() => {});
     </script>

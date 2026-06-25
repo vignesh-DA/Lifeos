@@ -215,3 +215,29 @@ Return ONLY the email body. Do not include the subject line in the body. Do not 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class PushDraftRequest(BaseModel):
+    user_id: str
+    recipient: str
+    subject: str
+    body: str
+
+@router.post("/crisis/push-draft")
+async def push_draft(request: PushDraftRequest):
+    """
+    Push a pre-generated email draft directly to Gmail.
+    """
+    try:
+        from utils.google_api import create_gmail_draft
+        draft = await create_gmail_draft(request.user_id, request.recipient, request.subject, request.body)
+        
+        if draft:
+            return {
+                "success": True,
+                "message": "Draft created in Gmail! ✉️",
+                "draft_id": draft.get("id"),
+                "draft_url": "https://mail.google.com/mail/u/0/#drafts"
+            }
+        else:
+            return {"success": False, "message": "Failed to create draft in Gmail."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
