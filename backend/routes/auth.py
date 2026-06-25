@@ -55,7 +55,7 @@ def _verify_session_token(token: str) -> dict | None:
 
 
 @router.get("/auth/login")
-async def login(request: Request, scope: Optional[str] = None):
+async def login(request: Request, scope: Optional[str] = None, redirect_url: Optional[str] = None):
     """Redirect user to Google OAuth consent page."""
     client_id = settings.GOOGLE_CLIENT_ID
     redirect_uri = settings.GOOGLE_REDIRECT_URI
@@ -84,6 +84,9 @@ async def login(request: Request, scope: Optional[str] = None):
         query_params["include_granted_scopes"] = "true"
     else:
         query_params["prompt"] = "select_account"
+
+    if redirect_url:
+        query_params["state"] = redirect_url
 
     query_string = urllib.parse.urlencode(query_params)
     google_auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{query_string}"
@@ -210,7 +213,12 @@ async def auth_callback(request: Request):
 
         # Create session cookie
         session_token = _make_session_token(user_info)
-        response = RedirectResponse("/dashboard.html")
+        
+        # Determine redirect target
+        state = request.query_params.get("state")
+        target_url = state if state and state.startswith("/") else "/dashboard.html"
+        
+        response = RedirectResponse(target_url)
         response.set_cookie(
             "lifeos_session",
             session_token,
