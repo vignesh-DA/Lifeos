@@ -56,9 +56,13 @@ function initCalendar(elementId) {
             const start = arg.event.start;
             const timeStr = start ? start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
 
+            const isOverdue = arg.event.extendedProps.deadline && new Date(arg.event.extendedProps.deadline) < new Date();
+            const overdueClass = isOverdue ? 'overdue-event' : '';
+            const overdueBadge = isOverdue ? '<div class="overdue-badge-fc">⚠️ OVERDUE</div><br/>' : '';
+
             return {
                 html: `
-                    <div style="
+                    <div class="${overdueClass}" style="
                         padding: 3px 6px;
                         height: 100%;
                         border-left: 3px solid ${color};
@@ -66,10 +70,10 @@ function initCalendar(elementId) {
                         border-radius: 5px;
                         overflow: hidden;
                     ">
-                        <div style="font-size:0.75rem; font-weight:700; color:#F8FAFC; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                            ${emoji} ${escapeHtml(props.task_title || arg.event.title.replace(/^[^\s]+\s/, ''))}
+                        <div style="font-size:0.75rem; font-weight:700; color:#F8FAFC; white-space:normal; line-height: 1.2;">
+                            ${overdueBadge}${emoji} ${escapeHtml(props.task_title || arg.event.title.replace(/^[^\s]+\s/, ''))}
                         </div>
-                        <div style="font-size:0.65rem; color:rgba(248,250,252,0.55); margin-top:1px;">${timeStr} · ${props.category || 'task'}</div>
+                        <div style="font-size:0.65rem; color:rgba(248,250,252,0.55); margin-top:2px;">${timeStr} · ${props.category || 'task'}</div>
                     </div>
                 `
             };

@@ -678,3 +678,118 @@ body {
         font-size: 0.875rem;
     }
 }
+
+/* ─── Calendar UI Enhancements ─── */
+
+/* 1. OVERDUE TASKS - Compact cards */
+.fc-event {
+    max-height: 80px !important;
+    overflow: hidden !important;
+    border-radius: 8px !important;
+    border: none !important;
+    padding: 4px 8px !important;
+}
+
+.fc-event-urgent {
+    background: rgba(239,68,68,0.15) !important;
+    border-left: 3px solid #EF4444 !important;
+}
+
+.fc-event-medium {
+    background: rgba(245,158,11,0.15) !important;
+    border-left: 3px solid #F59E0B !important;
+}
+
+.fc-event-low {
+    background: rgba(16,185,129,0.15) !important;
+    border-left: 3px solid #10B981 !important;
+}
+
+.fc-event.overdue-event {
+    max-height: 60px !important;
+    border-left: 3px solid #EF4444 !important;
+    background: rgba(239,68,68,0.1) !important;
+}
+.overdue-badge-fc {
+    display: inline-block;
+    background: rgba(239,68,68,0.2);
+    color: #F87171;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 1px 4px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+}
+
+/* 3. SIDEBAR OVERDUE PULSING DOT */
+.overdue-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #EF4444;
+    animation: heartbeat 1.2s infinite;
+    margin-right: 4px;
+    box-shadow: 0 0 8px rgba(239,68,68,0.8);
+}
+
+/* 4. QUICK ADD BUTTON GLOW */
+#btnQaAdd:hover {
+    box-shadow: 0 0 20px rgba(99,102,241,0.5);
+}
+
+/* 5. PRIORITY FILTER BUTTONS GLOW */
+.pf-btn.active.filter-high {
+    box-shadow: 0 0 15px rgba(239,68,68,0.4) !important;
+    border-color: #EF4444 !important;
+}
+.pf-btn.active.filter-medium {
+    box-shadow: 0 0 15px rgba(245,158,11,0.4) !important;
+    border-color: #F59E0B !important;
+}
+.pf-btn.active.filter-low {
+    box-shadow: 0 0 15px rgba(16,185,129,0.4) !important;
+    border-color: #10B981 !important;
+}
+
+/* 6. CURRENT TIME LINE */
+.fc-timegrid-now-indicator-line {
+    border-color: #6366f1 !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 10px rgba(99,102,241,0.8) !important;
+}
+.fc-timegrid-now-indicator-arrow {
+    border-color: #6366f1 !important;
+    border-width: 6px !important;
+    border-top-color: transparent !important;
+    border-bottom-color: transparent !important;
+}
+.fc-timegrid-now-indicator-arrow::before {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #6366f1;
+    border-radius: 50%;
+    left: -10px;
+    top: -4px;
+    animation: heartbeat 1.5s infinite;
+    box-shadow: 0 0 10px rgba(99,102,241,0.8);
+}
+
+/* 7. EMPTY TIME SLOTS HOVER */
+.fc-timegrid-slot-lane:hover {
+    background: rgba(99,102,241,0.05) !important;
+    cursor: pointer;
+    position: relative;
+}
+.fc-timegrid-slot-lane:hover::after {
+    content: '+';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    color: rgba(99,102,241,0.3);
+    pointer-events: none;
+}

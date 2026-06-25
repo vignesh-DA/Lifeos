@@ -12,6 +12,7 @@ dist/
 build/
 *.egg
 
+agent.md
 # ML Models
 *.pkl
 *.joblib

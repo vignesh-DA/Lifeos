@@ -486,8 +486,8 @@
                 } else {
                     document.getElementById('emailPreviewBody').textContent = `Subject: ${response.subject}\n\n${response.body}`;
                     currentDraftBody = response.body;
-                    document.getElementById('pushToGmailBtn').innerHTML = '<span>🔗</span> Connect Gmail in Dashboard to auto-push';
-                    document.getElementById('pushToGmailBtn').onclick = () => window.location.href = 'dashboard.html';
+                    document.getElementById('pushToGmailBtn').innerHTML = '<span>🔗</span> Connect Gmail to auto-push';
+                    document.getElementById('pushToGmailBtn').onclick = () => window.location.href = '/auth/login?scope=gmail';
                 }
 
             } catch (err) {

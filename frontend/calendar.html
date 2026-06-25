@@ -321,7 +321,7 @@
                     <option value="finance">💰 Finance</option>
                     <option value="health">🏃 Health</option>
                 </select>
-                <button onclick="quickAddTask()" class="btn-primary w-full justify-center" style="padding: 0.6rem; font-size: 0.85rem;">
+                <button id="btnQaAdd" onclick="quickAddTask()" class="btn-primary w-full justify-center" style="padding: 0.6rem; font-size: 0.85rem;">
                     ⚡ Add to Calendar
                 </button>
             </div>
@@ -473,12 +473,16 @@
                 const dl = getDeadlineText(task.deadline);
                 const safeTitle = JSON.stringify(task.title || '');
                 const safeId = JSON.stringify(task._id || '');
+                let dlHtml = dl;
+                if (dl === '⚠️ OVERDUE') {
+                    dlHtml = '<span class="overdue-dot"></span><span style="color:#EF4444; font-weight:700;">⚠️ OVERDUE</span>';
+                }
                 return `
                 <div class="sidebar-task" style="${border}" onclick="handleCrisisMode(${safeId}, ${safeTitle})">
                     <span style="color:${dot}; font-size:0.6rem; margin-top:4px;">●</span>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-semibold truncate" style="color:#F8FAFC;">${escapeHtml(task.title)}</p>
-                        <p class="text-xs mt-0.5" style="color:#64748B;">${dl}</p>
+                        <p class="text-xs mt-0.5" style="color:#64748B;">${dlHtml}</p>
                     </div>
                 </div>`;
             }).join('');
