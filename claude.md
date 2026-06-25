@@ -85,6 +85,14 @@
 - [x] `Procfile` — Railway config
 - [x] `README.md` — Full professional README (13 sections)
 
+### ✅ Phase 6 — Google Calendar & Gmail Integrations (COMPLETE)
+- [x] `backend/routes/auth.py` — Dynamic Google OAuth with incremental scopes (`calendar` and `gmail`).
+- [x] `backend/utils/google_api.py` — `httpx` based integration for token refresh, calendar event creation (with smart reminder overrides), and Gmail drafts creation.
+- [x] `backend/routes/tasks.py` — Auto-sync and manual sync of tasks to Google Calendar via background tasks.
+- [x] `backend/routes/crisis.py` — `/crisis/draft-email` endpoint to generate and push AI email drafts to Gmail.
+- [x] `frontend/dashboard.html` — Connection status pills and prompt banners.
+- [x] `frontend/crisis.html` — Emergency actions module with AI email drafter and Gmail push.
+
 ---
 
 ## What's Remaining
@@ -92,7 +100,7 @@
 ### 🔲 Testing & Verification
 - [x] Install dependencies (`pip install -r requirements.txt`)
 - [x] Download spaCy model
-- [ ] Set up `.env` with real API keys
+- [x] Set up `.env` with real API keys (Google OAuth & Groq)
 - [x] Start backend server and test health endpoint (server runs successfully)
 - [ ] Test brain dump endpoint
 - [ ] Test all frontend pages in browser

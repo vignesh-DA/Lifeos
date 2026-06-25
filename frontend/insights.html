@@ -165,7 +165,19 @@
     <script src="js/app.js"></script>
     <script src="js/charts.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', loadInsights);
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const r = await fetch('/auth/me');
+                const data = await r.json();
+                if (data.user && data.user.google_id) {
+                    DEFAULT_USER_ID = data.user.google_id;
+                } else {
+                    window.location.href = '/login.html';
+                    return;
+                }
+            } catch (e) {}
+            loadInsights();
+        });
 
         async function loadInsights() {
             try {

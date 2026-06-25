@@ -7,6 +7,12 @@ from typing import Optional
 
 router = APIRouter()
 
+class CrisisDraftEmailRequest(BaseModel):
+    user_id: str
+    task_title: str
+    recipient: str
+    context: str = ""
+
 
 class CrisisActivateRequest(BaseModel):
     task_id: Optional[str] = None
@@ -158,3 +164,54 @@ def _generate_fallback_crisis_plan(task_info: dict, minutes: int) -> dict:
         "steps": steps,
         "message": f"Crisis plan ready! {survival}% survival chance. Let's go! 🚨",
     }
+
+
+@router.post("/crisis/draft-email")
+async def draft_email(request: CrisisDraftEmailRequest):
+    """
+    Draft an email using AI and push it to the user's Gmail drafts.
+    """
+    try:
+        from langchain_groq import ChatGroq
+        from config import settings
+        from utils.google_api import create_gmail_draft
+
+        groq_llm = ChatGroq(
+            api_key=settings.GROQ_API_KEY,
+            model_name=settings.GROQ_MODEL,
+            temperature=0.7,
+            max_tokens=500,
+        )
+        prompt = f"""You are LIFEOS Crisis Assistant. 
+The user is working on this urgent task: {request.task_title}
+They need to send an email to: {request.recipient}
+Additional Context: {request.context}
+
+Write a concise, professional email draft. 
+Return ONLY the email body. Do not include the subject line in the body. Do not include placeholders if possible, be creative.
+"""
+        response = groq_llm.invoke(prompt)
+        body = response.content if hasattr(response, 'content') else str(response)
+        
+        subject = f"Update regarding: {request.task_title}"
+
+        # Attempt to create draft
+        draft = await create_gmail_draft(request.user_id, request.recipient, subject, body)
+        
+        if draft:
+            return {
+                "message": "Draft created in Gmail! ✉️",
+                "draft_id": draft.get("id"),
+                "draft_url": "https://mail.google.com/mail/u/0/#drafts"
+            }
+        else:
+            # Fallback if Gmail is not connected or token expired
+            return {
+                "message": "AI Draft generated. Gmail not connected. Please connect Gmail in Settings.",
+                "subject": subject,
+                "body": body
+            }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

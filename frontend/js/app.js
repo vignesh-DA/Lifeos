@@ -8,7 +8,7 @@ const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost:8000/api'
     : '/api';
 
-const DEFAULT_USER_ID = 'lifeos_user_1';
+let DEFAULT_USER_ID = null;
 
 // ─── API Client ───
 const api = {
@@ -190,14 +190,18 @@ function createTaskCard(task, options = {}) {
                 </span>
                 ${showActions ? `
                 <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn-success" onclick="handleCompleteTask(${safeId})" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                    <button class="btn-success" data-id="${escapeHtml(task._id)}" onclick="handleCompleteTask(this.dataset.id)" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
                         ✓ Done
                     </button>
                     ${showCrisis && priority >= 7 ? `
-                    <button class="btn-ghost" onclick="handleCrisisMode(${safeId}, ${safeTitle})"
+                    <button class="btn-ghost" data-id="${escapeHtml(task._id)}" data-title="${escapeHtml(task.title)}" onclick="handleCrisisMode(this.dataset.id, this.dataset.title)"
                             style="padding: 0.35rem 0.75rem; font-size: 0.8rem; color: var(--accent-crisis); border-color: var(--accent-crisis);">
                         🚨 Crisis
                     </button>` : ''}
+                    <button class="btn-ghost" data-id="${escapeHtml(task._id)}" onclick="handleDeleteTask(this.dataset.id)"
+                            style="padding: 0.35rem 0.75rem; font-size: 0.8rem; color: #EF4444; border-color: #EF4444;">
+                        🗑️ Delete
+                    </button>
                 </div>` : ''}
             </div>
         </div>

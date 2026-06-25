@@ -393,6 +393,17 @@
         let _activeFilter = 'all';
 
         document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const r = await fetch('/auth/me');
+                const data = await r.json();
+                if (data.user && data.user.google_id) {
+                    DEFAULT_USER_ID = data.user.google_id;
+                } else {
+                    window.location.href = '/login.html';
+                    return;
+                }
+            } catch (e) {}
+
             updateWeekRange();
             initCalendar('calendar');
             _allTasks = await loadCalendarEvents();

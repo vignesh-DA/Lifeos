@@ -5,6 +5,8 @@ import time
 import json
 import httpx
 
+from typing import Optional
+
 from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse, JSONResponse
 
@@ -53,21 +55,39 @@ def _verify_session_token(token: str) -> dict | None:
 
 
 @router.get("/auth/login")
-async def login(request: Request):
+async def login(request: Request, scope: Optional[str] = None):
     """Redirect user to Google OAuth consent page."""
     client_id = settings.GOOGLE_CLIENT_ID
     redirect_uri = settings.GOOGLE_REDIRECT_URI
-    scope = "openid email profile"
+    
+    # Scopes
+    scopes = ["openid", "email", "profile"]
+    extra_params = ""
+    if scope == "calendar":
+        scopes.append("https://www.googleapis.com/auth/calendar.events")
+        extra_params = "&prompt=consent&include_granted_scopes=true"
+    elif scope == "gmail":
+        scopes.append("https://www.googleapis.com/auth/gmail.compose")
+        extra_params = "&prompt=consent&include_granted_scopes=true"
+    import urllib.parse
+    
+    query_params = {
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+        "scope": " ".join(scopes),
+        "access_type": "offline",
+    }
+    
+    if scope in ["calendar", "gmail"]:
+        query_params["prompt"] = "consent"
+        query_params["include_granted_scopes"] = "true"
+    else:
+        query_params["prompt"] = "select_account"
 
-    google_auth_url = (
-        "https://accounts.google.com/o/oauth2/v2/auth"
-        f"?client_id={client_id}"
-        f"&redirect_uri={redirect_uri}"
-        f"&response_type=code"
-        f"&scope={scope.replace(' ', '%20')}"
-        f"&access_type=offline"
-        f"&prompt=select_account"
-    )
+    query_string = urllib.parse.urlencode(query_params)
+    google_auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{query_string}"
+    
     return RedirectResponse(google_auth_url)
 
 
@@ -81,6 +101,12 @@ async def auth_callback(request: Request):
         return RedirectResponse("/login.html?error=access_denied")
 
     try:
+        # Check if user is already logged in
+        existing_user_payload = None
+        session_cookie = request.cookies.get("lifeos_session")
+        if session_cookie:
+            existing_user_payload = _verify_session_token(session_cookie)
+
         # Exchange code for tokens
         async with httpx.AsyncClient() as client:
             token_res = await client.post(
@@ -96,6 +122,7 @@ async def auth_callback(request: Request):
             token_data = token_res.json()
 
             if "error" in token_data:
+                print(f"Google OAuth token exchange failed: {token_data}")
                 return RedirectResponse("/login.html?error=token_failed")
 
             # Fetch user info
@@ -120,24 +147,57 @@ async def auth_callback(request: Request):
                 except Exception as img_err:
                     print(f"  ⚠️  Failed to download user avatar: {img_err}")
 
+        # Parse token scopes and expiration
+        granted_scopes = token_data.get("scope", "").split(" ")
+        expires_in = token_data.get("expires_in", 3600)
+        expires_at = int(time.time()) + expires_in
+
+        google_tokens = {
+            "access_token": token_data.get("access_token"),
+            "expires_at": expires_at,
+            "scopes": granted_scopes,
+        }
+        if token_data.get("refresh_token"):
+            google_tokens["refresh_token"] = token_data.get("refresh_token")
+
+        # Determine google_id
+        google_id = user_info.get("sub") or (existing_user_payload.get("google_id") if existing_user_payload else None)
+        if not google_id:
+            return RedirectResponse("/login.html?error=server_error")
+
         # Upsert user in MongoDB
         try:
             from db.mongodb import get_db
             db = get_db()
             users_col = db["users"]
             
+            # Find existing user first to merge google_tokens
+            existing_user = await users_col.find_one({"google_id": google_id})
+            
+            # Merge scopes and refresh token if exists
+            if existing_user and "google_tokens" in existing_user:
+                old_tokens = existing_user["google_tokens"]
+                # Keep old refresh_token if new one is missing
+                if "refresh_token" not in google_tokens and "refresh_token" in old_tokens:
+                    google_tokens["refresh_token"] = old_tokens["refresh_token"]
+                # Merge scopes
+                merged_scopes = list(set(old_tokens.get("scopes", []) + granted_scopes))
+                google_tokens["scopes"] = merged_scopes
+
             set_dict = {
-                "email": user_info.get("email"),
-                "name": user_info.get("name"),
-                "picture": user_info.get("picture"),
-                "google_id": user_info.get("sub"),
+                "email": user_info.get("email") or (existing_user.get("email") if existing_user else ""),
+                "name": user_info.get("name") or (existing_user.get("name") if existing_user else ""),
+                "google_id": google_id,
                 "last_login": time.time(),
+                "google_tokens": google_tokens,
             }
             if picture_base64:
                 set_dict["picture_base64"] = picture_base64
-                
+            elif picture_url:
+                set_dict["picture"] = picture_url
+
             await users_col.update_one(
-                {"google_id": user_info.get("sub")},
+                {"google_id": google_id},
                 {"$set": set_dict, "$setOnInsert": {
                     "created_at": time.time(),
                     "streak_days": 0,
@@ -146,7 +206,7 @@ async def auth_callback(request: Request):
                 upsert=True,
             )
         except Exception as db_err:
-            print(f"  ⚠️  Could not save user to DB: {db_err}")
+            print(f"  ⚠️  Could not save user to DB in callback: {db_err}")
 
         # Create session cookie
         session_token = _make_session_token(user_info)
@@ -189,10 +249,19 @@ async def get_current_user(request: Request):
         user = await db["users"].find_one({"google_id": payload.get("google_id")})
         if user:
             picture = user.get("picture_base64") or user.get("picture") or payload.get("picture")
+            
+            # Check calendar and gmail connection status based on granted scopes
+            scopes = user.get("google_tokens", {}).get("scopes", [])
+            calendar_connected = "https://www.googleapis.com/auth/calendar.events" in scopes
+            gmail_connected = "https://www.googleapis.com/auth/gmail.compose" in scopes
+            
             return JSONResponse({"user": {
                 "name": user.get("name") or payload.get("name"),
                 "email": user.get("email") or payload.get("email"),
                 "picture": picture,
+                "calendar_connected": calendar_connected,
+                "gmail_connected": gmail_connected,
+                "google_id": payload.get("google_id"),
             }})
     except Exception as e:
         print(f"  ⚠️  Error retrieving user from DB in /auth/me: {e}")
@@ -201,4 +270,7 @@ async def get_current_user(request: Request):
         "name": payload.get("name"),
         "email": payload.get("email"),
         "picture": payload.get("picture"),
+        "calendar_connected": False,
+        "gmail_connected": False,
+        "google_id": payload.get("google_id"),
     }})

@@ -90,6 +90,53 @@
                 <p id="keyStrategy" class="text-slate-400 text-sm mt-3 max-w-md mx-auto"></p>
             </div>
 
+            <!-- Emergency Actions -->
+            <div class="mb-8 animate-slide-up delay-1">
+                <div class="glass-card p-4 border border-red-500/20 bg-red-950/10">
+                    <h3 class="text-sm font-bold text-red-400 mb-3 flex items-center gap-2">
+                        <span>🆘</span> Emergency Actions
+                    </h3>
+                    <div class="flex gap-3 flex-wrap">
+                        <button onclick="openEmailDrafter()" class="btn-ghost text-sm py-2 px-4 border-slate-700 hover:border-red-500/50">
+                            ✉️ Draft Extension / Excuse Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Drafter Panel -->
+            <div id="emailDrafterPanel" class="hidden mb-8 animate-slide-up">
+                <div class="glass-card p-5 border border-indigo-500/20 bg-indigo-950/10">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-indigo-400">AI Email Drafter</h3>
+                        <button onclick="closeEmailDrafter()" class="text-slate-400 hover:text-white">✕</button>
+                    </div>
+                    
+                    <div class="space-y-3 mb-4">
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">To: (Professor, Manager, etc.)</label>
+                            <input id="emailRecipient" class="input-dark w-full text-sm py-2" placeholder="e.g. Professor Smith">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Context / Excuse</label>
+                            <textarea id="emailContext" class="input-dark w-full text-sm py-2" rows="2" placeholder="e.g. My computer crashed last night and I lost my progress."></textarea>
+                        </div>
+                        <button id="generateEmailBtn" onclick="generateCrisisEmail()" class="btn-primary w-full py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white border-0">
+                            ✨ Generate Draft
+                        </button>
+                    </div>
+
+                    <div id="emailPreviewContainer" class="hidden mt-4 pt-4 border-t border-slate-700/50">
+                        <h4 class="text-xs font-semibold text-slate-300 mb-2">Preview</h4>
+                        <div class="bg-slate-900 rounded p-3 text-sm text-slate-300 whitespace-pre-wrap font-mono mb-3" id="emailPreviewBody">
+                        </div>
+                        <button id="pushToGmailBtn" onclick="pushToGmailDrafts()" class="btn-primary w-full py-2 text-sm flex justify-center items-center gap-2" style="background: #ea4335;">
+                            <span>📧</span> Push to Gmail Drafts
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Steps -->
             <div id="stepsContainer" class="space-y-4">
                 <!-- Steps render here -->
@@ -158,6 +205,19 @@
             const btn = document.getElementById('generateBtn');
             btn.disabled = true;
             btn.textContent = '⏳ Generating...';
+
+            try {
+                const r = await fetch('/auth/me');
+                const data = await r.json();
+                if (data.user && data.user.google_id) {
+                    DEFAULT_USER_ID = data.user.google_id;
+                } else {
+                    window.location.href = '/login.html';
+                    return;
+                }
+            } catch (e) {
+                console.warn("Failed to fetch auth/me:", e);
+            }
 
             document.getElementById('setupPhase').classList.add('hidden');
             document.getElementById('loadingPhase').classList.remove('hidden');
@@ -236,7 +296,6 @@
             const steps = crisisPlan.steps || [];
 
             container.innerHTML = steps.map((step, i) => {
-                const safeTitle = JSON.stringify(step.title || '');
                 return `
                 <div class="crisis-step ${i === 0 ? 'active' : ''}" id="step-${i}" data-step="${i}">
                     <div class="flex justify-between items-start mb-2">
@@ -253,7 +312,7 @@
                         </div>
                         <div class="flex gap-2">
                             ${step.ai_help ? `
-                                <button onclick="openAiHelp(${i}, ${safeTitle})"
+                                <button data-step="${i}" data-title="${escapeHtml(step.title)}" onclick="openAiHelp(this.dataset.step, this.dataset.title)"
                                         class="text-xs px-3 py-1 rounded-full bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors">
                                     ⚡ AI Help
                                 </button>
@@ -378,6 +437,74 @@
 
             messages.scrollTop = messages.scrollHeight;
         }
+
+        // Email Drafter Functions
+        let currentDraftBody = "";
+
+        function openEmailDrafter() {
+            document.getElementById('emailDrafterPanel').classList.remove('hidden');
+        }
+
+        function closeEmailDrafter() {
+            document.getElementById('emailDrafterPanel').classList.add('hidden');
+        }
+
+        async function generateCrisisEmail() {
+            const recipient = document.getElementById('emailRecipient').value.trim();
+            const context = document.getElementById('emailContext').value.trim();
+
+            if (!recipient) {
+                showToast("Please enter a recipient", "warning");
+                return;
+            }
+
+            const btn = document.getElementById('generateEmailBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Generating...';
+            btn.disabled = true;
+
+            try {
+                // We'll call the draft-email endpoint. It will return the body and possibly push to Gmail if connected, 
+                // but let's actually just generate it first, and pushing to Gmail can happen directly there or in two steps.
+                // Wait, the API endpoint `/crisis/draft-email` generates AND pushes. 
+                // Let's modify the flow to just call the API. If Gmail is connected, it creates the draft!
+                
+                const response = await api.post('/crisis/draft-email', {
+                    user_id: DEFAULT_USER_ID, // Ensure app.js sets this correctly, or backend parses session
+                    task_title: taskTitle,
+                    recipient: recipient,
+                    context: context
+                });
+
+                document.getElementById('emailPreviewContainer').classList.remove('hidden');
+                
+                if (response.draft_id) {
+                    document.getElementById('emailPreviewBody').textContent = "Draft successfully created in your Gmail account!";
+                    document.getElementById('pushToGmailBtn').innerHTML = '<span>↗️</span> Open Gmail Drafts';
+                    document.getElementById('pushToGmailBtn').onclick = () => window.open(response.draft_url, '_blank');
+                    showToast(response.message, "success");
+                } else {
+                    document.getElementById('emailPreviewBody').textContent = `Subject: ${response.subject}\n\n${response.body}`;
+                    currentDraftBody = response.body;
+                    document.getElementById('pushToGmailBtn').innerHTML = '<span>🔗</span> Connect Gmail in Dashboard to auto-push';
+                    document.getElementById('pushToGmailBtn').onclick = () => window.location.href = 'dashboard.html';
+                }
+
+            } catch (err) {
+                console.error(err);
+                showToast("Failed to generate email", "error");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        // Ensure DEFAULT_USER_ID is set via auth/me if possible
+        fetch('/auth/me').then(r => r.json()).then(data => {
+            if (data.user && data.user.google_id) {
+                window.DEFAULT_USER_ID = data.user.google_id;
+            }
+        }).catch(() => {});
     </script>
 
 </body>

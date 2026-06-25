@@ -5,10 +5,11 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from bson import ObjectId
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 
 from db.mongodb import tasks_collection, users_collection
+from utils.google_api import create_calendar_event
 
 router = APIRouter()
 
@@ -63,7 +64,7 @@ async def get_tasks(user_id: str, status: Optional[str] = None):
 
 
 @router.post("/tasks")
-async def create_task(task_data: TaskCreate):
+async def create_task(task_data: TaskCreate, background_tasks: BackgroundTasks):
     """Create a new task with AI-scored priority."""
     # Score priority using ML model
     priority_score = 5.0  # Default
@@ -96,11 +97,14 @@ async def create_task(task_data: TaskCreate):
     result = await tasks_collection().insert_one(task_doc)
     task_doc["_id"] = str(result.inserted_id)
 
+    # Auto-sync to calendar in background
+    background_tasks.add_task(create_calendar_event, task_data.user_id, task_doc)
+
     return {"task": task_doc, "message": "Task created successfully"}
 
 
 @router.put("/tasks/{task_id}")
-async def update_task(task_id: str, task_data: TaskUpdate):
+async def update_task(task_id: str, task_data: TaskUpdate, background_tasks: BackgroundTasks):
     """Update a task partially."""
     update_fields = {k: v for k, v in task_data.model_dump().items() if v is not None}
 
@@ -120,6 +124,11 @@ async def update_task(task_id: str, task_data: TaskUpdate):
         raise HTTPException(status_code=404, detail="Task not found")
 
     updated = await tasks_collection().find_one({"_id": ObjectId(task_id)})
+    
+    # Auto-sync to calendar if date/time changed
+    if update_fields.get("deadline") or update_fields.get("estimated_hours") or update_fields.get("title"):
+        background_tasks.add_task(create_calendar_event, updated.get("user_id"), updated)
+
     return {"task": task_serializer(updated), "message": "Task updated"}
 
 
@@ -244,3 +253,19 @@ async def get_streak(user_id: str):
         "badges": user.get("badges", []),
         "productivity_score": user.get("productivity_score", 0),
     }
+
+@router.post("/tasks/{task_id}/sync-calendar")
+async def sync_calendar(task_id: str, background_tasks: BackgroundTasks):
+    """Manually trigger a sync of a task to Google Calendar."""
+    task = await tasks_collection().find_one({"_id": ObjectId(task_id)})
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    user_id = task.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Task has no associated user")
+
+    background_tasks.add_task(create_calendar_event, user_id, task)
+    
+    return {"message": "Calendar sync started in background"}
+

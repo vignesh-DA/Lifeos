@@ -55,6 +55,17 @@
                          backdrop-filter: blur(20px);">
                         <p id="userName" style="font-size:0.85rem;font-weight:600;color:#F8FAFC;margin-bottom:0.25rem;"></p>
                         <p id="userEmail" style="font-size:0.72rem;color:#64748B;margin-bottom:0.75rem;overflow:hidden;text-overflow:ellipsis;"></p>
+                        
+                        <!-- Status Pills -->
+                        <div id="connectionStatus" class="space-y-2 mb-3">
+                            <div id="calendarStatusPill" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                                📅 Calendar: <span class="status-text text-slate-500">Not Connected</span>
+                            </div>
+                            <div id="gmailStatusPill" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                                ✉️ Gmail: <span class="status-text text-slate-500">Not Connected</span>
+                            </div>
+                        </div>
+
                         <a href="/auth/logout"
                            style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;border-radius:8px;
                                   background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);
@@ -70,11 +81,13 @@
     </nav>
 
     <script>
-        // Load user from session
         fetch('/auth/me').then(r => r.json()).then(data => {
             if (data.user) {
+                // IMPORTANT: Set global user ID for API calls
+                if (data.user.google_id) DEFAULT_USER_ID = data.user.google_id;
+                
                 const av = document.getElementById('userAvatar');
-                document.getElementById('userPhoto').src = data.user.picture || '';
+                document.getElementById('userPhoto').src = data.user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name || 'User')}&background=4F46E5&color=fff`;
                 document.getElementById('userName').textContent = data.user.name || '';
                 document.getElementById('userEmail').textContent = data.user.email || '';
                 av.classList.remove('hidden');
@@ -82,8 +95,33 @@
                 const firstName = (data.user.name || '').split(' ')[0];
                 const gr = document.getElementById('greeting');
                 if (gr && firstName) gr.textContent = gr.textContent.replace(/!$/, `, ${firstName}!`);
+
+                // Update connection status pills
+                if (data.user.calendar_connected) {
+                    const calPill = document.getElementById('calendarStatusPill');
+                    calPill.classList.replace('bg-slate-800', 'bg-indigo-900/40');
+                    calPill.classList.replace('border-slate-700', 'border-indigo-500/30');
+                    calPill.querySelector('.status-text').textContent = 'Connected';
+                    calPill.querySelector('.status-text').className = 'status-text text-indigo-400 font-medium';
+                    document.getElementById('calendarPrompt')?.classList.add('hidden');
+                }
+                
+                if (data.user.gmail_connected) {
+                    const gmailPill = document.getElementById('gmailStatusPill');
+                    gmailPill.classList.replace('bg-slate-800', 'bg-red-900/40');
+                    gmailPill.classList.replace('border-slate-700', 'border-red-500/30');
+                    gmailPill.querySelector('.status-text').textContent = 'Connected';
+                    gmailPill.querySelector('.status-text').className = 'status-text text-red-400 font-medium';
+                    document.getElementById('gmailPrompt')?.classList.add('hidden');
+                }
+                
+                refreshDashboard(); // Fetch tasks after auth is done
+            } else {
+                window.location.href = '/login.html'; // Protect the dashboard
             }
-        }).catch(() => {});
+        }).catch(() => {
+            refreshDashboard(); // Fallback if API fails
+        });
 
         function toggleUserMenu() {
             const menu = document.getElementById('userMenu');
@@ -214,7 +252,7 @@
                     </p>
                 </div>
 
-                <!-- Quick Links -->
+                <!-- Quick Links & Integrations -->
                 <div class="space-y-2 animate-slide-right delay-5">
                     <a href="calendar.html" class="glass-card flex items-center gap-3 py-3 px-4 hover:border-indigo-500/50 cursor-pointer" style="padding: 0.75rem 1rem;">
                         <span>📅</span>
@@ -223,6 +261,23 @@
                     <a href="insights.html" class="glass-card flex items-center gap-3 py-3 px-4 hover:border-indigo-500/50 cursor-pointer" style="padding: 0.75rem 1rem;">
                         <span>📊</span>
                         <span class="text-sm">Analytics & Patterns</span>
+                    </a>
+
+                    <!-- Connection Prompts -->
+                    <a id="calendarPrompt" href="/auth/login?scope=calendar" class="glass-card flex flex-col gap-1 py-3 px-4 hover:border-indigo-500/50 cursor-pointer mt-4 border-indigo-500/30 bg-indigo-500/5" style="padding: 0.75rem 1rem;">
+                        <div class="flex items-center gap-3">
+                            <span>🗓️</span>
+                            <span class="text-sm font-semibold text-indigo-400">Connect Calendar</span>
+                        </div>
+                        <span class="text-xs text-slate-400 pl-8">Auto-sync tasks to Google Calendar</span>
+                    </a>
+
+                    <a id="gmailPrompt" href="/auth/login?scope=gmail" class="glass-card flex flex-col gap-1 py-3 px-4 hover:border-red-500/50 cursor-pointer mt-2 border-red-500/30 bg-red-500/5" style="padding: 0.75rem 1rem;">
+                        <div class="flex items-center gap-3">
+                            <span>📧</span>
+                            <span class="text-sm font-semibold text-red-400">Connect Gmail</span>
+                        </div>
+                        <span class="text-xs text-slate-400 pl-8">AI drafts crisis emails for you</span>
                     </a>
                 </div>
             </div>
@@ -249,8 +304,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/app.js"></script>
-    <script src="js/charts.js"></script>
+    <script src="js/app.js?v=2"></script>
+    <script src="js/charts.js?v=2"></script>
     <script>
         let currentMood = null;
 
@@ -259,8 +314,6 @@
             const dateInfo = getCurrentDateInfo();
             document.getElementById('currentDate').textContent = dateInfo.full;
             document.getElementById('greeting').textContent = `${dateInfo.greeting} 👋`;
-
-            refreshDashboard();
         });
 
         // Refresh all dashboard data
