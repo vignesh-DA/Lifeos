@@ -237,6 +237,16 @@
                     ` + recsEl.innerHTML;
                 }
 
+                // Check and load pre-generated review for the current week
+                try {
+                    const reviewRes = await api.get(`/review/current/${DEFAULT_USER_ID}`);
+                    if (reviewRes && reviewRes.exists && reviewRes.review) {
+                        renderWeeklyReview(reviewRes.review);
+                    }
+                } catch (revErr) {
+                    console.error('Failed to load pre-generated weekly review:', revErr);
+                }
+
             } catch (err) {
                 console.error('Failed to load insights:', err);
                 document.getElementById('patternsContainer').innerHTML =
@@ -252,28 +262,32 @@
             }
         }
 
+        function renderWeeklyReview(review) {
+            document.getElementById('reviewSection').classList.remove('hidden');
+
+            animateCountUp(document.getElementById('reviewScore'), review.productivity_score || 0);
+            document.getElementById('reviewCompleted').textContent = review.completed_count || 0;
+            document.getElementById('reviewMissed').textContent = review.missed_count || 0;
+            document.getElementById('reviewStreak').textContent = review.streak_days || 0;
+
+            document.getElementById('reviewWins').innerHTML =
+                (review.wins || []).map(w => `<div>${escapeHtml(w)}</div>`).join('') || '<div class="text-slate-500">No wins yet</div>';
+            document.getElementById('reviewLosses').innerHTML =
+                (review.losses || []).map(l => `<div>${escapeHtml(l)}</div>`).join('') || '<div class="text-slate-500">No misses!</div>';
+            document.getElementById('reviewFocusText').textContent = review.next_week_focus || 'Keep going!';
+        }
+
         async function generateWeeklyReview() {
             showToast('Generating weekly review...', 'info');
             try {
                 const data = await generateReview();
-                const review = data.review || {};
-
-                document.getElementById('reviewSection').classList.remove('hidden');
-
-                animateCountUp(document.getElementById('reviewScore'), review.productivity_score || 0);
-                document.getElementById('reviewCompleted').textContent = review.completed_count || 0;
-                document.getElementById('reviewMissed').textContent = review.missed_count || 0;
-                document.getElementById('reviewStreak').textContent = review.streak_days || 0;
-
-                document.getElementById('reviewWins').innerHTML =
-                    (review.wins || []).map(w => `<div>${escapeHtml(w)}</div>`).join('') || '<div class="text-slate-500">No wins yet</div>';
-                document.getElementById('reviewLosses').innerHTML =
-                    (review.losses || []).map(l => `<div>${escapeHtml(l)}</div>`).join('') || '<div class="text-slate-500">No misses!</div>';
-                document.getElementById('reviewFocusText').textContent = review.next_week_focus || 'Keep going!';
-
-                // Scroll to review
-                document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth' });
-                showToast('Review generated! 📈', 'success');
+                if (data.review) {
+                    renderWeeklyReview(data.review);
+                    document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth' });
+                    showToast('Review generated! 📈', 'success');
+                } else {
+                    showToast('No review returned from server', 'warning');
+                }
             } catch (err) {
                 showToast('Failed to generate review', 'error');
             }

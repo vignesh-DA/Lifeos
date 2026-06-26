@@ -178,7 +178,23 @@ async def create_calendar_event(user_id: str, task: dict) -> dict | None:
             
             if res.status_code in [200, 201]:
                 event_data = res.json()
-                print(f"  📅 Calendar event successfully created: {event_data.get('id')}")
+                event_id = event_data.get('id')
+                print(f"  📅 Calendar event successfully created: {event_id}")
+                
+                # Save the calendar event ID to the task document in MongoDB
+                try:
+                    from db.mongodb import tasks_collection
+                    from bson import ObjectId
+                    task_id = task.get("_id")
+                    if task_id:
+                        await tasks_collection().update_one(
+                            {"_id": ObjectId(task_id) if isinstance(task_id, str) else task_id},
+                            {"$set": {"google_calendar_event_id": event_id}}
+                        )
+                        print(f"  💾 Google Calendar Event ID saved to task {task_id}")
+                except Exception as db_err:
+                    print(f"  ⚠️ Failed to save calendar event ID to DB: {db_err}")
+
                 return event_data
             else:
                 print(f"  ❌ Failed to create calendar event: {res.status_code} - {res.text}")
@@ -187,6 +203,39 @@ async def create_calendar_event(user_id: str, task: dict) -> dict | None:
     except Exception as e:
         print(f"  ❌ Error calling Google Calendar API: {e}")
         return None
+
+
+async def delete_calendar_event(user_id: str, event_id: str) -> bool:
+    """
+    Delete a scheduled event from Google Calendar.
+    """
+    if not event_id:
+        return False
+
+    scope = "https://www.googleapis.com/auth/calendar.events"
+    token = await get_google_access_token(user_id, scope)
+    if not token:
+        print("  ⚠️ Google OAuth token not available for calendar deletion.")
+        return False
+
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.delete(
+                f"https://www.googleapis.com/calendar/v3/calendars/primary/events/{event_id}",
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=10.0
+            )
+            if res.status_code in [200, 204]:
+                print(f"  📅 Calendar event successfully deleted: {event_id}")
+                return True
+            else:
+                print(f"  ❌ Failed to delete calendar event: {res.status_code} - {res.text}")
+                return False
+
+    except Exception as e:
+        print(f"  ❌ Error calling Google Calendar API for deletion: {e}")
+        return False
+
 
 
 async def create_gmail_draft(user_id: str, to: str, subject: str, body: str) -> dict | None:

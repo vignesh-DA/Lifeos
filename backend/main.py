@@ -67,6 +67,13 @@ async def lifespan(app: FastAPI):
     except ImportError:
         print("  ⚠️  spaCy not installed")
 
+    # Start background scheduler
+    try:
+        from services.scheduler import start_scheduler
+        start_scheduler()
+    except Exception as e:
+        print(f"  ⚠️ Background scheduler failed to start: {e}")
+
     print("=" * 50)
     print("🟢 LIFEOS is alive and ready!")
     print("=" * 50)
@@ -74,8 +81,16 @@ async def lifespan(app: FastAPI):
     yield
 
     # ─── SHUTDOWN ───
+    # Stop background scheduler
+    try:
+        from services.scheduler import stop_scheduler
+        stop_scheduler()
+    except Exception as e:
+        print(f"  ⚠️ Failed to stop background scheduler: {e}")
+
     await close_db()
     print("🔴 LIFEOS shut down")
+
 
 
 # ─── Create FastAPI App ───

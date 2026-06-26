@@ -133,7 +133,7 @@ async def update_task(task_id: str, task_data: TaskUpdate, background_tasks: Bac
 
 
 @router.put("/tasks/{task_id}/complete")
-async def complete_task(task_id: str):
+async def complete_task(task_id: str, background_tasks: BackgroundTasks):
     """Mark a task as completed and update user streak."""
     task = await tasks_collection().find_one({"_id": ObjectId(task_id)})
     if not task:
@@ -148,6 +148,17 @@ async def complete_task(task_id: str):
     # Update user streak
     user_id = task.get("user_id")
     user = await users_collection().find_one({"user_id": user_id})
+
+    # Delete Google Calendar event if it exists
+    event_id = task.get("google_calendar_event_id")
+    if event_id and user_id:
+        from utils.google_api import delete_calendar_event
+        background_tasks.add_task(delete_calendar_event, user_id, event_id)
+        # Clean it up from the task
+        await tasks_collection().update_one(
+            {"_id": ObjectId(task_id)},
+            {"$unset": {"google_calendar_event_id": ""}}
+        )
 
     streak_days = 1
     best_streak = 1
@@ -204,14 +215,24 @@ async def complete_task(task_id: str):
     }
 
 
+
 @router.delete("/tasks/{task_id}")
-async def delete_task(task_id: str):
+async def delete_task(task_id: str, background_tasks: BackgroundTasks):
     """Delete a task."""
-    result = await tasks_collection().delete_one({"_id": ObjectId(task_id)})
-    if result.deleted_count == 0:
+    task = await tasks_collection().find_one({"_id": ObjectId(task_id)})
+    if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
+    # Delete corresponding calendar event if exists
+    event_id = task.get("google_calendar_event_id")
+    user_id = task.get("user_id")
+    if event_id and user_id:
+        from utils.google_api import delete_calendar_event
+        background_tasks.add_task(delete_calendar_event, user_id, event_id)
+
+    result = await tasks_collection().delete_one({"_id": ObjectId(task_id)})
     return {"message": "Task deleted", "task_id": task_id}
+
 
 
 @router.put("/tasks/{task_id}/postpone")

@@ -170,6 +170,25 @@ async def generate_review(request: ReviewRequest):
         raise HTTPException(status_code=500, detail=f"Review generation failed: {str(e)}")
 
 
+@router.get("/review/current/{user_id}")
+async def get_current_review(user_id: str):
+    """
+    Get the weekly review for the current week, if it exists in the database.
+    """
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    week = f"{now.year}-W{now.isocalendar()[1]:02d}"
+
+    try:
+        review = await reviews_collection().find_one({"user_id": user_id, "week": week})
+        if review:
+            review["_id"] = str(review["_id"])
+            return {"review": review, "exists": True}
+        return {"review": None, "exists": False}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch review: {str(e)}")
+
+
 def _generate_charts_data(tasks: list) -> dict:
     """Generate data formatted for Chart.js charts."""
     from collections import Counter, defaultdict

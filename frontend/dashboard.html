@@ -433,20 +433,22 @@
             }
         }
 
-        // Quick add task
+        // Quick add task (calls NLP engine)
         async function quickAddTask() {
             const input = document.getElementById('quickTaskInput');
             const title = input.value.trim();
             if (!title) return;
 
             try {
-                await api.post('/tasks', {
-                    user_id: DEFAULT_USER_ID,
-                    title: title,
-                    category: 'personal',
-                });
+                const res = await submitBrainDump(title);
+                const tasks = res.saved_tasks || res.tasks || [];
                 input.value = '';
-                showToast('Task added! ✅');
+                
+                if (tasks.length > 0 && tasks[0].deadline && tasks[0].deadline !== 'unknown') {
+                    showToast(`Task added! Due: ${tasks[0].deadline} 📅`);
+                } else {
+                    showToast('Task added! ✅');
+                }
                 refreshDashboard();
             } catch (err) {
                 showToast('Failed to add task', 'error');
