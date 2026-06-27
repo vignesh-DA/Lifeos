@@ -111,8 +111,8 @@ async def generate_review(request: ReviewRequest):
         best_streak = user.get("best_streak", 0) if user else 0
 
         # Build review
-        wins = [f"✅ {t['title']}" for t in completed[:10]]
-        losses = [f"❌ {t['title']}" for t in missed[:5]]
+        wins = [f"{t['title']}" for t in completed[:10]]
+        losses = [f"{t['title']}" for t in missed[:5]]
 
         # Generate recommendations
         recommendations = []

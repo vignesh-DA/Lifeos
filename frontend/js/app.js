@@ -544,9 +544,17 @@ const NotificationService = {
 
     init() {
         if (!('Notification' in window)) return;
+        
+        // Modern browsers block permission requests on page load.
+        // Request permission on the first user interaction.
         if (Notification.permission === 'default') {
-            Notification.requestPermission();
+            const requestOnInteraction = () => {
+                Notification.requestPermission();
+                document.removeEventListener('click', requestOnInteraction);
+            };
+            document.addEventListener('click', requestOnInteraction);
         }
+        
         if (!this.initialized) {
             this.intervalId = setInterval(() => this.checkTasks(), 60000); // Check every minute
             this.initialized = true;
