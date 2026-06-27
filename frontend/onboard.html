@@ -5,140 +5,283 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="LIFEOS Brain Dump — Tell AI everything on your mind and get organized tasks instantly.">
     <title>Brain Dump — LIFEOS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=6">
+    <style>
+        .centered-workspace {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            min-height: calc(100vh - 120px);
+        }
+    </style>
 </head>
-<body class="bg-[#0F0F1A] text-white min-h-screen">
+<body class="bg-[#09090F] text-white min-h-screen">
 
-    <!-- Top Bar -->
-    <nav class="bg-[#0F0F1A]/80 backdrop-blur-xl border-b border-[#2D2D4E] px-6 py-4">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <a href="index.html" class="flex items-center gap-2">
-                <span class="text-xl">🧠</span>
-                <span class="font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">LIFEOS</span>
+    <!-- Ambient Glow Background -->
+    <div class="glow-bg">
+        <div class="glow-blob glow-purple"></div>
+        <div class="glow-blob glow-blue"></div>
+        <div class="glow-blob glow-pink"></div>
+    </div>
+
+    <!-- Mobile Top Bar -->
+    <header class="mobile-top-bar">
+        <div class="flex items-center gap-2">
+            <span class="text-xl">🧠</span>
+            <span class="font-extrabold text-base bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">LIFEOS</span>
+        </div>
+        <button id="mobileMenuBtn" class="text-white focus:outline-none" onclick="toggleMobileSidebar()">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+    </header>
+
+    <div class="app-container">
+        
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar" id="appSidebar">
+            <a href="dashboard.html" class="sidebar-logo">
+                <span class="logo-symbol">🧠</span>
+                <span class="logo-text">LIFEOS</span>
             </a>
-            <a href="dashboard.html" class="nav-link text-sm">Skip to Dashboard →</a>
-        </div>
-    </nav>
+            
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="dashboard.html" class="sidebar-link" id="nav-dashboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="onboard.html" class="sidebar-link" id="nav-dump">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        Brain Dump
+                    </a>
+                </li>
+                <li>
+                    <a href="plan.html" class="sidebar-link" id="nav-plan">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+                        AI Plan
+                    </a>
+                </li>
+                <li>
+                    <a href="calendar.html" class="sidebar-link" id="nav-calendar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        Calendar
+                    </a>
+                </li>
+                <li>
+                    <a href="insights.html" class="sidebar-link" id="nav-insights">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        Insights
+                    </a>
+                </li>
+            </ul>
 
-    <!-- Main Content -->
-    <div class="max-w-3xl mx-auto px-6 py-12">
+            <div class="sidebar-footer">
+                <div class="user-profile" id="userAvatar" onclick="toggleUserMenu()">
+                    <img id="sidebarUserPhoto" src="https://ui-avatars.com/api/?name=User&background=7C5CFF&color=fff" alt="User" class="user-avatar">
+                    <div class="user-info">
+                        <div id="sidebarUserName" class="user-name">Loading...</div>
+                        <div id="sidebarUserEmail" class="user-email">email@domain.com</div>
+                    </div>
+                </div>
+                <!-- Custom Dropdown Menu for Logout -->
+                <div id="userMenu" style="display:none; position:absolute; bottom:calc(100% + 8px); left:16px; right:16px;
+                     background: rgba(18,19,37,0.98); border:1px solid var(--border-default); border-radius:16px;
+                     padding:1rem; box-shadow: 0 16px 40px rgba(0,0,0,0.5); z-index:100;
+                     backdrop-filter: blur(20px);">
+                    <a href="/auth/logout"
+                       style="display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1rem;border-radius:12px;
+                              background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);
+                              color:#F87171;font-size:13px;font-weight:600;text-decoration:none;transition:all 0.2s;"
+                       onmouseover="this.style.background='rgba(239,68,68,0.2)'"
+                       onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+                        🚪 Sign Out
+                    </a>
+                </div>
+            </div>
+        </aside>
 
-        <!-- Header -->
-        <div class="text-center mb-10 animate-slide-up">
-            <div class="text-5xl mb-4 animate-float">🧠</div>
-            <h1 class="text-3xl font-bold mb-3">
-                Dump Your <span class="gradient-text">Brain</span>
-            </h1>
-            <p class="text-slate-400 max-w-md mx-auto">
-                Tell me everything. Assignments, bills, interviews, calls — messy is fine.
-                AI will sort it all out in seconds.
-            </p>
-        </div>
+        <!-- Main Workspace -->
+        <main class="main-workspace">
+            
+            <div class="centered-workspace">
+                
+                <!-- Dump Title Header -->
+                <div class="text-center mb-8">
+                    <div class="text-5xl mb-4 animate-float" style="display:inline-block;">🧠</div>
+                    <h1 class="text-3xl font-extrabold mb-2">Dump Your <span class="text-gradient">Brain</span></h1>
+                    <p class="text-sm text-slate-400 max-w-md mx-auto">
+                        Type or speak anything on your mind. Messy is fine. AI will sort it into structured, scheduled actions.
+                    </p>
+                </div>
 
-        <!-- Input Section -->
-        <div id="inputSection" class="animate-slide-up delay-2">
-            <div class="glass-card">
-                <textarea
-                    id="brainDumpInput"
-                    class="input-dark w-full"
-                    rows="8"
-                    placeholder="Example: I'm so stressed, ML assignment due this week, gotta call mom for her birthday, electricity bill overdue, TCS interview coming up haven't prepared, rent by Sunday..."
-                    style="min-height: 200px; font-size: 1rem; line-height: 1.8;"
-                ></textarea>
+                <!-- Core Input Panel -->
+                <div id="inputSection" class="w-full">
+                    <div class="glass-card">
+                        <textarea
+                            id="brainDumpInput"
+                            class="input-dark w-full"
+                            rows="7"
+                            placeholder="Example: Need to study for the DBMS final exam coming up next Friday, gotta pay the power bill before tomorrow evening, and call Mom for her birthday..."
+                            style="min-height: 180px; font-size: 1rem; line-height: 1.8;"
+                        ></textarea>
 
-                <!-- Voice & Status -->
-                <div class="flex items-center justify-between mt-4">
-                    <div class="flex items-center gap-3">
+                        <!-- Voice & characters indicator -->
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="flex items-center gap-3">
+                                <button
+                                    id="voiceBtn"
+                                    onclick="toggleVoice()"
+                                    class="mood-btn"
+                                    title="Click to speak"
+                                    style="border-radius: 50%; font-size: 1.1rem;"
+                                >🎙️</button>
+                                
+                                <span id="voiceStatus" class="text-xs text-slate-500 font-medium">
+                                    Click mic to record or type
+                                </span>
+                            </div>
+
+                            <!-- Animated voice wave -->
+                            <div id="voiceWaveform" class="voice-wave hidden">
+                                <div class="voice-bar"></div>
+                                <div class="voice-bar"></div>
+                                <div class="voice-bar"></div>
+                                <div class="voice-bar"></div>
+                                <div class="voice-bar"></div>
+                            </div>
+
+                            <span id="charCount" class="text-xs text-slate-500 font-medium">0 characters</span>
+                        </div>
+
+                        <!-- Analyze Button -->
                         <button
-                            id="voiceBtn"
-                            onclick="toggleVoice()"
-                            class="mood-btn"
-                            title="Click to speak"
-                        >🎙️</button>
-                        <span id="voiceStatus" class="text-xs text-slate-500">
-                            Click mic to speak or type above
-                        </span>
+                            id="submitBtn"
+                            onclick="handleBrainDump()"
+                            class="btn-primary w-full mt-6 justify-center text-base py-4 rounded-xl shadow-[0_0_20px_rgba(124,92,255,0.3)]"
+                        >
+                            ⚡ Let AI Figure It Out
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Processing Loading card -->
+                <div id="loadingSection" class="hidden w-full mt-8">
+                    <div class="glass-card text-center py-12">
+                        <div class="text-4xl mb-4 animate-float" style="display:inline-block;">🧠</div>
+                        <h3 class="font-bold text-lg mb-2 text-gradient">Structuring Ideas...</h3>
+                        <p class="text-xs text-slate-400 mb-6">Extracting tasks • Scoring ML priorities • Checking schedules</p>
+                        
+                        <div class="progress-bar max-w-xs mx-auto mb-6">
+                            <div class="progress-fill" style="width: 0%;" id="loadingProgress"></div>
+                        </div>
+                        
+                        <div class="flex justify-center gap-2">
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#7C5CFF] animate-pulse"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#7C5CFF] animate-pulse" style="animation-delay: 0.2s"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#7C5CFF] animate-pulse" style="animation-delay: 0.4s"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Outcome results card -->
+                <div id="resultsSection" class="hidden w-full mt-8 space-y-6">
+                    
+                    <!-- Stress score metadata -->
+                    <div id="summaryCard" class="glass-card">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-lg">📋</span>
+                            <h3 class="font-bold text-sm text-[#A78BFA] uppercase tracking-wider">AI Extraction Complete</h3>
+                        </div>
+                        <p id="summaryText" class="text-sm text-slate-300 leading-relaxed"></p>
+                        <div class="flex gap-6 mt-4 pt-3 border-t border-white/[0.04]">
+                            <span id="stressLevel" class="text-xs font-semibold"></span>
+                            <span id="totalHours" class="text-xs text-slate-400 font-semibold"></span>
+                        </div>
                     </div>
 
-                    <span id="charCount" class="text-xs text-slate-600">0 characters</span>
+                    <!-- Immediate warnings -->
+                    <div id="immediateActions" class="hidden">
+                        <div class="bg-red-500/10 border border-red-500/25 rounded-2xl p-5">
+                            <h4 class="text-xs font-bold text-red-400 mb-2 uppercase tracking-widest">⚠️ Urgent Actions Detected</h4>
+                            <div id="immediateList" class="space-y-1.5"></div>
+                        </div>
+                    </div>
+
+                    <!-- Extracted Task Cards List -->
+                    <div class="space-y-3">
+                        <h4 class="font-bold text-sm text-slate-400 uppercase tracking-wider mb-2">Identified Tasks</h4>
+                        <div id="tasksList" class="space-y-3">
+                            <!-- Cards render dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Reset Options -->
+                    <div class="flex gap-4">
+                        <a href="dashboard.html" class="btn-primary flex-1 justify-center py-4 text-center">
+                            ✅ Keep & Go to Dashboard
+                        </a>
+                        <button onclick="resetBrainDump()" class="btn-secondary flex-1 py-4">
+                            🔄 Restructure Again
+                        </button>
+                    </div>
+
                 </div>
 
-                <!-- Submit -->
-                <button
-                    id="submitBtn"
-                    onclick="handleBrainDump()"
-                    class="btn-primary w-full mt-6 justify-center text-lg py-4"
-                >
-                    ⚡ Let AI Figure It Out
-                </button>
-            </div>
-        </div>
-
-        <!-- Loading State -->
-        <div id="loadingSection" class="hidden animate-fade-in mt-8">
-            <div class="glass-card text-center py-12">
-                <div class="text-4xl mb-4 animate-float">🧠</div>
-                <h3 class="text-lg font-semibold mb-2">LIFEOS is thinking...</h3>
-                <p class="text-sm text-slate-400 mb-6">Extracting tasks • Scoring priorities • Building your plan</p>
-                <div class="progress-bar max-w-xs mx-auto">
-                    <div class="progress-fill" style="width: 0%;" id="loadingProgress"></div>
-                </div>
-                <div class="flex justify-center gap-2 mt-6">
-                    <div class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></div>
-                    <div class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" style="animation-delay: 0.2s"></div>
-                    <div class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" style="animation-delay: 0.4s"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Results Section -->
-        <div id="resultsSection" class="hidden mt-8">
-            <!-- Summary Card -->
-            <div id="summaryCard" class="glass-card mb-6 animate-slide-up">
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="text-lg">📋</span>
-                    <h3 class="font-bold">AI Analysis Complete</h3>
-                </div>
-                <p id="summaryText" class="text-sm text-slate-400"></p>
-                <div class="flex gap-4 mt-3">
-                    <span id="stressLevel" class="text-xs"></span>
-                    <span id="totalHours" class="text-xs text-slate-500"></span>
-                </div>
             </div>
 
-            <!-- Immediate Actions -->
-            <div id="immediateActions" class="hidden mb-6 animate-slide-up delay-1">
-                <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                    <h4 class="text-sm font-bold text-red-400 mb-2">⚠️ IMMEDIATE ACTION REQUIRED</h4>
-                    <div id="immediateList"></div>
-                </div>
-            </div>
-
-            <!-- Extracted Tasks -->
-            <div id="tasksList" class="space-y-3 mb-8">
-                <!-- Task cards will be rendered here -->
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-3 animate-slide-up delay-4">
-                <a href="dashboard.html" class="btn-primary flex-1 justify-center py-4 text-center">
-                    ✅ Looks Good — Go to Dashboard
-                </a>
-                <button onclick="resetBrainDump()" class="btn-ghost flex-1 py-4">
-                    🔄 Dump Again
-                </button>
-            </div>
-        </div>
+        </main>
 
     </div>
 
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-bottom-nav">
+        <ul>
+            <li>
+                <a href="dashboard.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="onboard.html" class="mobile-bottom-link active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <span>Dump</span>
+                </a>
+            </li>
+            <li>
+                <a href="plan.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+                    <span>AI Plan</span>
+                </a>
+            </li>
+            <li>
+                <a href="calendar.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Calendar</span>
+                </a>
+            </li>
+            <li>
+                <a href="insights.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Insights</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
     <!-- Scripts -->
-    <script src="js/app.js"></script>
-    <script src="js/voice.js"></script>
+    <script src="js/app.js?v=3"></script>
+    <script src="js/voice.js?v=3"></script>
     <script>
-        // Fetch user context to ensure tasks are saved to the correct account
+        // Fetch OAuth check
         fetch('/auth/me').then(r => r.json()).then(data => {
             if (data.user && data.user.google_id) {
                 DEFAULT_USER_ID = data.user.google_id;
@@ -147,9 +290,21 @@
             }
         }).catch(() => {});
 
-        // Initialize voice input
         document.addEventListener('DOMContentLoaded', () => {
             initVoiceInput('brainDumpInput', 'voiceStatus', 'voiceBtn');
+
+            // Hook waveform reveal into speech start/end
+            if (recognition) {
+                recognition.onstart = (orig => () => {
+                    orig();
+                    document.getElementById('voiceWaveform').classList.remove('hidden');
+                })(recognition.onstart);
+
+                recognition.onend = (orig => () => {
+                    orig();
+                    document.getElementById('voiceWaveform').classList.add('hidden');
+                })(recognition.onend);
+            }
 
             // Character counter
             const textarea = document.getElementById('brainDumpInput');
@@ -158,7 +313,11 @@
             });
         });
 
-        // Handle brain dump submission
+        function toggleMobileSidebar() {
+            document.getElementById('appSidebar').classList.toggle('open');
+        }
+
+        // Submit brain dump
         async function handleBrainDump() {
             const text = document.getElementById('brainDumpInput').value.trim();
             if (!text) {
@@ -166,15 +325,13 @@
                 return;
             }
 
-            // Show loading
             document.getElementById('inputSection').classList.add('hidden');
             document.getElementById('loadingSection').classList.remove('hidden');
 
-            // Animate progress bar
             const progressBar = document.getElementById('loadingProgress');
             let progress = 0;
             const progressInterval = setInterval(() => {
-                progress = Math.min(progress + Math.random() * 15, 90);
+                progress = Math.min(progress + Math.random() * 15, 95);
                 progressBar.style.width = `${progress}%`;
             }, 300);
 
@@ -191,48 +348,48 @@
                 clearInterval(progressInterval);
                 document.getElementById('loadingSection').classList.add('hidden');
                 document.getElementById('inputSection').classList.remove('hidden');
-                showToast('Failed to process brain dump. Is the server running?', 'error');
-                console.error(err);
+                showToast('Processing failed.', 'error');
             }
         }
 
-        // Render results
+        // Display outcome list
         function renderResults(result) {
             document.getElementById('loadingSection').classList.add('hidden');
             document.getElementById('resultsSection').classList.remove('hidden');
 
-            // Summary
-            document.getElementById('summaryText').textContent = result.summary || `${(result.tasks || []).length} tasks extracted`;
+            document.getElementById('summaryText').textContent = result.summary || `${(result.tasks || []).length} tasks identified by AI.`;
 
-            // Stress level
+            // Stress level representation
             const stressEl = document.getElementById('stressLevel');
-            const stressColors = { low: '#10B981', medium: '#F59E0B', high: '#EF4444', critical: '#DC2626' };
+            const stressColors = { low: '#10B981', medium: '#F59E0B', high: '#EF4444', critical: '#EF4444' };
             const stressEmojis = { low: '😌', medium: '😐', high: '😰', critical: '🔥' };
             const stress = result.stress_level || 'medium';
-            stressEl.innerHTML = `<span style="color: ${stressColors[stress]}">${stressEmojis[stress]} Stress: ${stress.toUpperCase()}</span>`;
+            stressEl.innerHTML = `<span style="color: ${stressColors[stress]}">${stressEmojis[stress]} Stress Capacity: ${stress.toUpperCase()}</span>`;
 
-            // Total hours
+            // Estimated workload
             const hours = result.total_estimated_hours || 0;
-            document.getElementById('totalHours').textContent = `⏱ ~${hours.toFixed(1)} hours total`;
+            document.getElementById('totalHours').textContent = `⏱ Workload estimate: ~${hours.toFixed(1)}h`;
 
-            // Immediate actions
+            // Urgent actions alerts
             const immediate = result.immediate_action_required || [];
+            const imSection = document.getElementById('immediateActions');
             if (immediate.length > 0) {
-                document.getElementById('immediateActions').classList.remove('hidden');
+                imSection.classList.remove('hidden');
                 document.getElementById('immediateList').innerHTML = immediate
-                    .map(t => `<div class="text-sm text-red-300 py-1">→ ${escapeHtml(t)}</div>`)
+                    .map(t => `<div class="text-xs text-red-300 font-semibold">• ${escapeHtml(t)}</div>`)
                     .join('');
+            } else {
+                imSection.classList.add('hidden');
             }
 
-            // Task cards
+            // Task chips
             const tasks = result.tasks || result.saved_tasks || [];
             const tasksList = document.getElementById('tasksList');
             tasksList.innerHTML = tasks
-                .map((task, i) => createTaskCard(task, { delay: 0.1 * (i + 1), showActions: false, showCrisis: false }))
+                .map((task, i) => createTaskCard(task, { delay: 0.08 * (i + 1), showActions: false, showCrisis: false }))
                 .join('');
         }
 
-        // Reset
         function resetBrainDump() {
             document.getElementById('resultsSection').classList.add('hidden');
             document.getElementById('inputSection').classList.remove('hidden');
@@ -240,6 +397,5 @@
             document.getElementById('charCount').textContent = '0 characters';
         }
     </script>
-
 </body>
 </html>

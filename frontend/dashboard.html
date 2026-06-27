@@ -5,98 +5,355 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="LIFEOS Dashboard — Your AI-powered command center for life management.">
     <title>Dashboard — LIFEOS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=6">
 </head>
-<body class="bg-[#0F0F1A] text-white min-h-screen">
+<body class="bg-[#09090F] text-white min-h-screen">
 
-    <!-- Top Navigation Bar -->
-    <nav class="bg-[#0F0F1A]/80 backdrop-blur-xl border-b border-[#2D2D4E] px-6 py-3 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-6">
-                <a href="index.html" class="flex items-center gap-2">
-                    <span class="text-xl">🧠</span>
-                    <span class="font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">LIFEOS</span>
-                </a>
-                <div class="hidden md:flex items-center gap-1">
-                    <a href="dashboard.html" class="nav-link active">Dashboard</a>
-                    <a href="onboard.html" class="nav-link">Brain Dump</a>
-                    <a href="calendar.html" class="nav-link">Calendar</a>
-                    <a href="insights.html" class="nav-link">Insights</a>
+    <!-- Ambient Glow Background -->
+    <div class="glow-bg">
+        <div class="glow-blob glow-purple"></div>
+        <div class="glow-blob glow-blue"></div>
+        <div class="glow-blob glow-pink"></div>
+    </div>
+
+    <!-- Mobile Top Bar -->
+    <header class="mobile-top-bar">
+        <div class="flex items-center gap-2">
+            <span class="text-xl">🧠</span>
+            <span class="font-extrabold text-base bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">LIFEOS</span>
+        </div>
+        <button id="mobileMenuBtn" class="text-white focus:outline-none" onclick="toggleMobileSidebar()">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+    </header>
+
+    <div class="app-container">
+        
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar" id="appSidebar">
+            <a href="dashboard.html" class="sidebar-logo">
+                <span class="logo-symbol">🧠</span>
+                <span class="logo-text">LIFEOS</span>
+            </a>
+            
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="dashboard.html" class="sidebar-link" id="nav-dashboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="onboard.html" class="sidebar-link" id="nav-dump">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        Brain Dump
+                    </a>
+                </li>
+                <li>
+                    <a href="plan.html" class="sidebar-link" id="nav-plan">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+                        AI Plan
+                    </a>
+                </li>
+                <li>
+                    <a href="calendar.html" class="sidebar-link" id="nav-calendar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        Calendar
+                    </a>
+                </li>
+                <li>
+                    <a href="insights.html" class="sidebar-link" id="nav-insights">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        Insights
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-profile" id="userAvatar" onclick="toggleUserMenu()">
+                    <img id="userPhoto" src="https://ui-avatars.com/api/?name=User&background=7C5CFF&color=fff" alt="User" class="user-avatar">
+                    <div class="user-info">
+                        <div id="userName" class="user-name">Loading...</div>
+                        <div id="userEmail" class="user-email">email@domain.com</div>
+                    </div>
+                </div>
+                <!-- Custom Dropdown Menu for Logout & Connections -->
+                <div id="userMenu" style="display:none; position:absolute; bottom:calc(100% + 8px); left:16px; right:16px;
+                     background: rgba(18,19,37,0.98); border:1px solid var(--border-default); border-radius:16px;
+                     padding:1rem; box-shadow: 0 16px 40px rgba(0,0,0,0.5); z-index:100;
+                     backdrop-filter: blur(20px);">
+                    <!-- Connection Status -->
+                    <div id="connectionStatus" class="space-y-2 mb-4">
+                        <div id="calendarStatusPill" class="text-xs px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                            📅 Calendar: <span class="status-text text-slate-500">Disconnected</span>
+                        </div>
+                        <div id="gmailStatusPill" class="text-xs px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                            ✉️ Gmail: <span class="status-text text-slate-500">Disconnected</span>
+                        </div>
+                    </div>
+
+                    <a href="/auth/logout"
+                       style="display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1rem;border-radius:12px;
+                              background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);
+                              color:#F87171;font-size:13px;font-weight:600;text-decoration:none;transition:all 0.2s;"
+                       onmouseover="this.style.background='rgba(239,68,68,0.2)'"
+                       onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+                        🚪 Sign Out
+                    </a>
                 </div>
             </div>
+        </aside>
 
-            <div class="flex items-center gap-4">
-                <!-- Mood Selector -->
-                <div class="hidden sm:flex items-center gap-2">
-                    <span class="text-xs text-slate-500">Mood:</span>
-                    <button class="mood-btn" onclick="selectMood('tired')" data-mood="tired" title="Tired">😴</button>
-                    <button class="mood-btn" onclick="selectMood('stressed')" data-mood="stressed" title="Stressed">😰</button>
-                    <button class="mood-btn" onclick="selectMood('energized')" data-mood="energized" title="Energized">🔥</button>
-                    <button class="mood-btn" onclick="selectMood('distracted')" data-mood="distracted" title="Distracted">😕</button>
+        <!-- Main Workspace (Desktop) -->
+        <main class="main-workspace">
+            
+            <!-- Top Dashboard Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div id="currentDate" class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Friday, June 26, 2026</div>
+                    <h1 id="greeting" class="text-3xl font-extrabold tracking-tight">Good Afternoon 👋</h1>
                 </div>
 
-                <!-- Date -->
-                <div class="text-right hidden sm:block">
-                    <div id="currentDate" class="text-xs text-slate-500"></div>
-                    <div id="greeting" class="text-sm font-semibold"></div>
-                </div>
-
-                <!-- User Avatar (Google OAuth) -->
-                <div id="userAvatar" class="relative hidden" style="cursor:pointer;" onclick="toggleUserMenu()">
-                    <img id="userPhoto" src="" alt="User"
-                         style="width:34px;height:34px;border-radius:50%;border:2px solid rgba(99,102,241,0.5);object-fit:cover;">
-                    <!-- Dropdown -->
-                    <div id="userMenu" style="display:none; position:absolute; right:0; top:calc(100% + 8px);
-                         background: rgba(26,26,46,0.98); border:1px solid rgba(45,45,78,0.8); border-radius:12px;
-                         padding:0.75rem; min-width:200px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); z-index:100;
-                         backdrop-filter: blur(20px);">
-                        <p id="userName" style="font-size:0.85rem;font-weight:600;color:#F8FAFC;margin-bottom:0.25rem;"></p>
-                        <p id="userEmail" style="font-size:0.72rem;color:#64748B;margin-bottom:0.75rem;overflow:hidden;text-overflow:ellipsis;"></p>
-                        
-                        <!-- Status Pills -->
-                        <div id="connectionStatus" class="space-y-2 mb-3">
-                            <div id="calendarStatusPill" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                                📅 Calendar: <span class="status-text text-slate-500">Not Connected</span>
-                            </div>
-                            <div id="gmailStatusPill" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                                ✉️ Gmail: <span class="status-text text-slate-500">Not Connected</span>
-                            </div>
-                        </div>
-
-                        <a href="/auth/logout"
-                           style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;border-radius:8px;
-                                  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);
-                                  color:#F87171;font-size:0.78rem;font-weight:600;text-decoration:none;transition:all 0.2s;"
-                           onmouseover="this.style.background='rgba(239,68,68,0.2)'"
-                           onmouseout="this.style.background='rgba(239,68,68,0.1)'">
-                            🚪 Sign Out
-                        </a>
+                <div class="flex items-center gap-4">
+                    <!-- Mood Widget -->
+                    <div class="flex items-center gap-2 bg-[#121325]/60 border border-white/[0.06] rounded-2xl p-1.5 backdrop-blur-md">
+                        <span class="text-xs text-slate-400 px-2 font-medium">Energy:</span>
+                        <button class="mood-btn" onclick="selectMood('tired')" data-mood="tired" title="Tired">😴</button>
+                        <button class="mood-btn" onclick="selectMood('stressed')" data-mood="stressed" title="Stressed">😰</button>
+                        <button class="mood-btn" onclick="selectMood('energized')" data-mood="energized" title="Energized">🔥</button>
+                        <button class="mood-btn" onclick="selectMood('distracted')" data-mood="distracted" title="Distracted">😕</button>
                     </div>
                 </div>
             </div>
-        </div>
-    </nav>
 
+            <!-- Content Grid layout -->
+            <div class="grid lg:grid-cols-3 gap-8">
+                
+                <!-- Center Core Panels (2 Columns) -->
+                <div class="lg:col-span-2 space-y-8">
+                    
+                    <!-- Today's Focus -->
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold flex items-center gap-2">Today's Focus 🎯</h2>
+                            <a href="onboard.html" class="btn-ghost text-xs">
+                                + Brain Dump
+                            </a>
+                        </div>
+                        <p id="moodNote" class="text-xs text-slate-400 mb-3"></p>
+
+                        <div id="taskContainer" class="space-y-4">
+                            <div class="skeleton" style="height: 80px;"></div>
+                            <div class="skeleton" style="height: 80px;"></div>
+                        </div>
+
+                        <div id="noTasks" class="hidden glass-card text-center py-12">
+                            <div class="text-5xl mb-4">📋</div>
+                            <h3 class="font-bold mb-2">Clean slate today</h3>
+                            <p class="text-sm text-slate-400 mb-6 max-w-sm mx-auto">No pending tasks. Start by brain dumping details about your upcoming plans.</p>
+                            <a href="onboard.html" class="btn-primary">🧠 Start Brain Dump</a>
+                        </div>
+                    </div>
+
+                    <!-- AI Plan Recommendations -->
+                    <div id="aiPlanSection" class="hidden">
+                        <div class="insight-card border border-indigo-500/20 shadow-[0_0_20px_rgba(124,92,255,0.06)]">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="text-lg">🤖</span>
+                                <h3 class="font-bold text-sm text-[#A78BFA] uppercase tracking-wider">Autonomous Planner Suggestion</h3>
+                            </div>
+                            <p id="aiPlanText" class="text-sm text-slate-300 leading-relaxed"></p>
+                        </div>
+                    </div>
+
+                    <!-- Crisis Button Panel -->
+                    <div>
+                        <button
+                            id="crisisBtn"
+                            onclick="window.location.href='crisis.html'"
+                            class="btn-crisis w-full justify-center py-6 text-lg tracking-wide rounded-2xl"
+                        >
+                            🚨 CRISIS MODE — I Need Help NOW
+                        </button>
+                    </div>
+
+                    <!-- Quick Add Card -->
+                    <div class="glass-card">
+                        <h4 class="font-bold text-sm text-slate-400 mb-3 uppercase tracking-wider">Quick Task Creator</h4>
+                        <div class="flex gap-4">
+                            <input
+                                id="quickTaskInput"
+                                class="input-dark flex-1"
+                                placeholder="e.g. Schedule meeting with supervisor tomorrow at 11am..."
+                                onkeypress="if(event.key==='Enter') quickAddTask()"
+                            >
+                            <button onclick="quickAddTask()" class="btn-primary px-6" style="padding: 10px 24px;">Add</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Analytics & Streaks (1 Column) -->
+                <div class="space-y-8">
+                    
+                    <!-- Productivity Score Progress Ring -->
+                    <div class="stat-card">
+                        <div class="flex justify-between items-center mb-4 px-2">
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Weekly Score</span>
+                            <span class="text-xs text-green-400 font-semibold">📈 +8%</span>
+                        </div>
+                        <div class="relative flex items-center justify-center py-4" style="height: 140px; width: 140px; margin: 0 auto;">
+                            <canvas id="productivityChart"></canvas>
+                        </div>
+                        <div class="mt-4">
+                            <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Productivity Index</div>
+                        </div>
+                    </div>
+
+                    <!-- Streak Panel -->
+                    <div class="stat-card">
+                        <div class="text-4xl mb-2">🔥</div>
+                        <div id="streakCount" class="stat-value">0</div>
+                        <div class="stat-label">Day Streak</div>
+                        <div id="bestStreak" class="text-xs text-slate-500 mt-2 font-medium">Best: 0 days</div>
+                    </div>
+
+                    <!-- Counter metrics -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="stat-card">
+                            <div id="pendingCount" class="stat-value text-2xl text-gradient">0</div>
+                            <div class="stat-label text-[10px]">Active</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="completedCount" class="stat-value text-2xl" style="-webkit-text-fill-color: #10B981;">0</div>
+                            <div class="stat-label text-[10px]">Resolved</div>
+                        </div>
+                    </div>
+
+                    <!-- AI Insights -->
+                    <div class="insight-card">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span>💡</span>
+                            <span class="text-xs font-bold text-[#A78BFA] uppercase tracking-wider">Agent Insights</span>
+                        </div>
+                        <p id="aiInsight" class="text-sm text-slate-300 leading-relaxed">
+                            Loading insights...
+                        </p>
+                    </div>
+
+                    <!-- Integrations Card prompts -->
+                    <div class="space-y-3">
+                        <a href="calendar.html" class="glass-card flex items-center gap-4 py-4 px-5 hover:border-[#7C5CFF]/30 cursor-pointer">
+                            <span class="text-xl">📅</span>
+                            <span class="text-sm font-semibold">Full Calendar View</span>
+                        </a>
+                        <a href="insights.html" class="glass-card flex items-center gap-4 py-4 px-5 hover:border-[#7C5CFF]/30 cursor-pointer">
+                            <span class="text-xl">📊</span>
+                            <span class="text-sm font-semibold">Analytics & Streaks</span>
+                        </a>
+
+                        <!-- Google Calendar API connection status -->
+                        <a id="calendarPrompt" href="/auth/login?scope=calendar" class="glass-card flex flex-col gap-1 py-4 px-5 border-indigo-500/20 bg-indigo-500/5 hover:border-indigo-500/40 mt-4">
+                            <div class="flex items-center gap-3">
+                                <span>🗓️</span>
+                                <span class="text-sm font-bold text-indigo-400">Sync Google Calendar</span>
+                            </div>
+                            <span class="text-xs text-slate-400 pl-8 font-medium">Auto-export tasks to phone</span>
+                        </a>
+
+                        <!-- Gmail connection status -->
+                        <a id="gmailPrompt" href="/auth/login?scope=gmail" class="glass-card flex flex-col gap-1 py-4 px-5 border-red-500/20 bg-red-500/5 hover:border-red-500/40">
+                            <div class="flex items-center gap-3">
+                                <span>📧</span>
+                                <span class="text-sm font-bold text-red-400">Connect Gmail</span>
+                            </div>
+                            <span class="text-xs text-slate-400 pl-8 font-medium">Draft crisis email explanations</span>
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-bottom-nav">
+        <ul>
+            <li>
+                <a href="dashboard.html" class="mobile-bottom-link active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="onboard.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <span>Dump</span>
+                </a>
+            </li>
+            <li>
+                <a href="plan.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+                    <span>AI Plan</span>
+                </a>
+            </li>
+            <li>
+                <a href="calendar.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Calendar</span>
+                </a>
+            </li>
+            <li>
+                <a href="insights.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Insights</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js?v=3"></script>
+    <script src="js/charts.js?v=3"></script>
     <script>
+        let currentMood = null;
+
+        // Initialize dashboard dates
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInfo = getCurrentDateInfo();
+            document.getElementById('currentDate').textContent = dateInfo.full;
+            document.getElementById('greeting').textContent = `${dateInfo.greeting} 👋`;
+        });
+
+
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('appSidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Fetch User profile & Connection variables
         fetch('/auth/me').then(r => r.json()).then(data => {
             if (data.user) {
-                // IMPORTANT: Set global user ID for API calls
                 if (data.user.google_id) DEFAULT_USER_ID = data.user.google_id;
                 
-                const av = document.getElementById('userAvatar');
-                document.getElementById('userPhoto').src = data.user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name || 'User')}&background=4F46E5&color=fff`;
-                document.getElementById('userName').textContent = data.user.name || '';
+                // Sidebar UI
+                document.getElementById('userPhoto').src = data.user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name || 'User')}&background=7C5CFF&color=fff`;
+                document.getElementById('userName').textContent = data.user.name || 'User';
                 document.getElementById('userEmail').textContent = data.user.email || '';
-                av.classList.remove('hidden');
-                // Update greeting with user's first name
+
+                // Header welcome text
                 const firstName = (data.user.name || '').split(' ')[0];
                 const gr = document.getElementById('greeting');
-                if (gr && firstName) gr.textContent = gr.textContent.replace(/!$/, `, ${firstName}!`);
+                if (gr && firstName) gr.textContent = `${getCurrentDateInfo().greeting}, ${firstName} 👋`;
 
-                // Update connection status pills
+                // Google Calendar status update
                 if (data.user.calendar_connected) {
                     const calPill = document.getElementById('calendarStatusPill');
                     calPill.classList.replace('bg-slate-800', 'bg-indigo-900/40');
@@ -106,6 +363,7 @@
                     document.getElementById('calendarPrompt')?.classList.add('hidden');
                 }
                 
+                // Gmail OAuth status update
                 if (data.user.gmail_connected) {
                     const gmailPill = document.getElementById('gmailStatusPill');
                     gmailPill.classList.replace('bg-slate-800', 'bg-red-900/40');
@@ -115,208 +373,15 @@
                     document.getElementById('gmailPrompt')?.classList.add('hidden');
                 }
                 
-                refreshDashboard(); // Fetch tasks after auth is done
+                refreshDashboard(); // Fetch user tasks
             } else {
-                window.location.href = '/login.html'; // Protect the dashboard
+                window.location.href = '/login.html'; // Protect path redirect
             }
         }).catch(() => {
-            refreshDashboard(); // Fallback if API fails
+            refreshDashboard(); // Local development fallback
         });
 
-        function toggleUserMenu() {
-            const menu = document.getElementById('userMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-        }
-        document.addEventListener('click', (e) => {
-            if (!document.getElementById('userAvatar')?.contains(e.target)) {
-                const menu = document.getElementById('userMenu');
-                if (menu) menu.style.display = 'none';
-            }
-        });
-    </script>
-
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-6 py-8">
-        <div class="grid lg:grid-cols-3 gap-6">
-
-            <!-- ═══ LEFT COLUMN (2/3) ═══ -->
-            <div class="lg:col-span-2 space-y-6">
-
-                <!-- Today's Mission -->
-                <div class="animate-slide-up">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h2 class="text-xl font-bold">Today's Mission 🎯</h2>
-                            <p id="moodNote" class="text-sm text-slate-400 mt-1"></p>
-                        </div>
-                        <a href="onboard.html" class="btn-ghost text-sm">
-                            + Brain Dump
-                        </a>
-                    </div>
-
-                    <div id="taskContainer" class="space-y-3">
-                        <!-- Task cards load here -->
-                        <div class="skeleton" style="height: 90px;"></div>
-                        <div class="skeleton" style="height: 90px;"></div>
-                        <div class="skeleton" style="height: 90px;"></div>
-                    </div>
-
-                    <div id="noTasks" class="hidden glass-card text-center py-8">
-                        <div class="text-4xl mb-3">📋</div>
-                        <h3 class="font-semibold mb-2">No tasks yet</h3>
-                        <p class="text-sm text-slate-400 mb-4">Start by dumping your brain — tell AI everything on your mind.</p>
-                        <a href="onboard.html" class="btn-primary">🧠 Start Brain Dump</a>
-                    </div>
-                </div>
-
-                <!-- Crisis Mode Button -->
-                <div class="animate-slide-up delay-2">
-                    <button
-                        id="crisisBtn"
-                        onclick="window.location.href='crisis.html'"
-                        class="btn-crisis w-full justify-center py-5 text-lg"
-                    >
-                        🚨 CRISIS MODE — I Need Help NOW
-                    </button>
-                </div>
-
-                <!-- AI Plan Section -->
-                <div id="aiPlanSection" class="hidden animate-slide-up delay-3">
-                    <div class="glass-card">
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="text-lg">🤖</span>
-                            <h3 class="font-bold">LIFEOS Says...</h3>
-                        </div>
-                        <p id="aiPlanText" class="text-sm text-slate-300 leading-relaxed"></p>
-                    </div>
-                </div>
-
-                <!-- Quick Add Task -->
-                <div class="animate-slide-up delay-3">
-                    <div class="glass-card">
-                        <h4 class="font-semibold mb-3 text-sm text-slate-400">Quick Add Task</h4>
-                        <div class="flex gap-3">
-                            <input
-                                id="quickTaskInput"
-                                class="input-dark flex-1"
-                                placeholder="Add a quick task..."
-                                onkeypress="if(event.key==='Enter') quickAddTask()"
-                            >
-                            <button onclick="quickAddTask()" class="btn-primary px-6">Add</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══ RIGHT COLUMN (1/3) ═══ -->
-            <div class="space-y-6">
-
-                <!-- Productivity Score -->
-                <div class="stat-card animate-slide-right delay-1">
-                    <div style="width: 120px; height: 120px; margin: 0 auto;">
-                        <canvas id="productivityChart"></canvas>
-                    </div>
-                    <div class="mt-3">
-                        <div class="text-xs text-slate-500 uppercase tracking-wider">Productivity Score</div>
-                    </div>
-                </div>
-
-                <!-- Streak -->
-                <div class="stat-card animate-slide-right delay-2">
-                    <div class="text-3xl mb-1">🔥</div>
-                    <div id="streakCount" class="stat-value">0</div>
-                    <div class="stat-label">Day Streak</div>
-                    <div id="bestStreak" class="text-xs text-slate-500 mt-1">Best: 0 days</div>
-                </div>
-
-                <!-- Task Stats -->
-                <div class="grid grid-cols-2 gap-3 animate-slide-right delay-3">
-                    <div class="stat-card">
-                        <div id="pendingCount" class="stat-value text-xl">0</div>
-                        <div class="stat-label text-[0.65rem]">Pending</div>
-                    </div>
-                    <div class="stat-card">
-                        <div id="completedCount" class="stat-value text-xl">0</div>
-                        <div class="stat-label text-[0.65rem]">Completed</div>
-                    </div>
-                </div>
-
-                <!-- AI Insight -->
-                <div class="insight-card animate-slide-right delay-4">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span>💡</span>
-                        <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">AI Insight</span>
-                    </div>
-                    <p id="aiInsight" class="text-sm text-slate-300">
-                        Loading insights...
-                    </p>
-                </div>
-
-                <!-- Quick Links & Integrations -->
-                <div class="space-y-2 animate-slide-right delay-5">
-                    <a href="calendar.html" class="glass-card flex items-center gap-3 py-3 px-4 hover:border-indigo-500/50 cursor-pointer" style="padding: 0.75rem 1rem;">
-                        <span>📅</span>
-                        <span class="text-sm">Calendar View</span>
-                    </a>
-                    <a href="insights.html" class="glass-card flex items-center gap-3 py-3 px-4 hover:border-indigo-500/50 cursor-pointer" style="padding: 0.75rem 1rem;">
-                        <span>📊</span>
-                        <span class="text-sm">Analytics & Patterns</span>
-                    </a>
-
-                    <!-- Connection Prompts -->
-                    <a id="calendarPrompt" href="/auth/login?scope=calendar" class="glass-card flex flex-col gap-1 py-3 px-4 hover:border-indigo-500/50 cursor-pointer mt-4 border-indigo-500/30 bg-indigo-500/5" style="padding: 0.75rem 1rem;">
-                        <div class="flex items-center gap-3">
-                            <span>🗓️</span>
-                            <span class="text-sm font-semibold text-indigo-400">Connect Calendar</span>
-                        </div>
-                        <span class="text-xs text-slate-400 pl-8">Auto-sync tasks to Google Calendar</span>
-                    </a>
-
-                    <a id="gmailPrompt" href="/auth/login?scope=gmail" class="glass-card flex flex-col gap-1 py-3 px-4 hover:border-red-500/50 cursor-pointer mt-2 border-red-500/30 bg-red-500/5" style="padding: 0.75rem 1rem;">
-                        <div class="flex items-center gap-3">
-                            <span>📧</span>
-                            <span class="text-sm font-semibold text-red-400">Connect Gmail</span>
-                        </div>
-                        <span class="text-xs text-slate-400 pl-8">AI drafts crisis emails for you</span>
-                    </a>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Mobile Bottom Nav -->
-    <div class="fixed bottom-0 left-0 right-0 bg-[#0F0F1A]/90 backdrop-blur-xl border-t border-[#2D2D4E] md:hidden z-50">
-        <div class="flex justify-around py-3">
-            <a href="dashboard.html" class="flex flex-col items-center gap-1 text-indigo-400">
-                <span>🏠</span><span class="text-[10px]">Home</span>
-            </a>
-            <a href="onboard.html" class="flex flex-col items-center gap-1 text-slate-400">
-                <span>🧠</span><span class="text-[10px]">Dump</span>
-            </a>
-            <a href="calendar.html" class="flex flex-col items-center gap-1 text-slate-400">
-                <span>📅</span><span class="text-[10px]">Calendar</span>
-            </a>
-            <a href="insights.html" class="flex flex-col items-center gap-1 text-slate-400">
-                <span>📊</span><span class="text-[10px]">Insights</span>
-            </a>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="js/app.js?v=2"></script>
-    <script src="js/charts.js?v=2"></script>
-    <script>
-        let currentMood = null;
-
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', () => {
-            const dateInfo = getCurrentDateInfo();
-            document.getElementById('currentDate').textContent = dateInfo.full;
-            document.getElementById('greeting').textContent = `${dateInfo.greeting} 👋`;
-        });
-
-        // Refresh all dashboard data
+        // Refresh all dashboard widget data
         async function refreshDashboard() {
             await Promise.all([
                 loadTasks(),
@@ -325,7 +390,7 @@
             ]);
         }
 
-        // Load tasks
+        // Load dashboard task lists
         async function loadTasks() {
             try {
                 const data = await getTasks();
@@ -337,10 +402,8 @@
                 document.getElementById('pendingCount').textContent = pending.length;
                 document.getElementById('completedCount').textContent = completed.length;
 
-                // Update ambient pressure
                 updateAmbientPressure(tasks);
 
-                // Render task cards
                 const container = document.getElementById('taskContainer');
                 const noTasks = document.getElementById('noTasks');
 
@@ -352,11 +415,11 @@
                     noTasks.classList.add('hidden');
                     container.innerHTML = pending
                         .slice(0, 8)
-                        .map((task, i) => createTaskCard(task, { delay: 0.1 * i }))
+                        .map((task, i) => createTaskCard(task, { delay: 0.08 * i }))
                         .join('');
                 }
 
-                // Productivity score
+                // Productivity Score chart
                 const total = tasks.length || 1;
                 const score = Math.round((completed.length / total) * 100);
                 createProductivityChart('productivityChart', score);
@@ -365,14 +428,14 @@
                 console.error('Failed to load tasks:', err);
                 document.getElementById('taskContainer').innerHTML = `
                     <div class="glass-card text-center py-6">
-                        <p class="text-slate-400 text-sm">⚠️ Cannot connect to server. Make sure the backend is running.</p>
+                        <p class="text-slate-400 text-sm">⚠️ Failed to connect to server backend.</p>
                         <code class="text-xs text-slate-500 mt-2 block">uvicorn main:app --reload --port 8000</code>
                     </div>
                 `;
             }
         }
 
-        // Load streak
+        // Load user productivity day streaks
         async function loadStreak() {
             try {
                 const data = await getStreak();
@@ -384,7 +447,7 @@
             }
         }
 
-        // Load AI insight
+        // Load AI scheduler suggestions
         async function loadInsight() {
             try {
                 const data = await getInsights();
@@ -392,48 +455,43 @@
                 if (recs.length > 0) {
                     document.getElementById('aiInsight').textContent = recs[0];
                 } else {
-                    document.getElementById('aiInsight').textContent = 'Complete more tasks to unlock personalized insights!';
+                    document.getElementById('aiInsight').textContent = 'Complete tasks to unlock custom AI analysis.';
                 }
 
-                // Show intervention if needed
                 if (data.intervention_needed && data.intervention_message) {
                     const planSection = document.getElementById('aiPlanSection');
                     planSection.classList.remove('hidden');
                     document.getElementById('aiPlanText').textContent = data.intervention_message;
                 }
             } catch (err) {
-                document.getElementById('aiInsight').textContent = 'Start adding tasks to see AI insights.';
+                document.getElementById('aiInsight').textContent = 'Get started by creating your first task.';
             }
         }
 
-        // Mood selector
+        // Manage Mood aligned energy plan
         async function selectMood(mood) {
             currentMood = mood;
-
-            // Update UI
             document.querySelectorAll('.mood-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.mood === mood);
             });
 
-            showToast(`Mood set to ${mood} — adjusting schedule...`, 'info');
+            showToast(`Energy adjusted for ${mood} mood...`, 'info');
 
             try {
                 const result = await setMood(mood);
-                const note = result.adjusted_schedule?.mood_note || `Schedule adjusted for ${mood} mood.`;
+                const note = result.adjusted_schedule?.mood_note || `Schedule restructured for ${mood} mood.`;
                 document.getElementById('moodNote').textContent = note;
 
-                // Show AI plan section with mood note
                 const planSection = document.getElementById('aiPlanSection');
                 planSection.classList.remove('hidden');
                 document.getElementById('aiPlanText').textContent = note;
-
-                showToast('Schedule adjusted! 🎭', 'success');
+                showToast('Schedule optimized! 🎭', 'success');
             } catch (err) {
-                document.getElementById('moodNote').textContent = `${mood} mode — schedule will adjust when server is available.`;
+                document.getElementById('moodNote').textContent = `${mood.toUpperCase()} mood enabled.`;
             }
         }
 
-        // Quick add task (calls NLP engine)
+        // Quick add task NLP engine trigger
         async function quickAddTask() {
             const input = document.getElementById('quickTaskInput');
             const title = input.value.trim();
@@ -445,13 +503,13 @@
                 input.value = '';
                 
                 if (tasks.length > 0 && tasks[0].deadline && tasks[0].deadline !== 'unknown') {
-                    showToast(`Task added! Due: ${tasks[0].deadline} 📅`);
+                    showToast(`Task schedule set: ${tasks[0].deadline} 📅`);
                 } else {
-                    showToast('Task added! ✅');
+                    showToast('Task captured successfully! ✅');
                 }
                 refreshDashboard();
             } catch (err) {
-                showToast('Failed to add task', 'error');
+                showToast('Failed to parse input', 'error');
             }
         }
     </script>

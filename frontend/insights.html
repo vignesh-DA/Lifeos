@@ -5,165 +5,270 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="LIFEOS Insights — AI-powered analytics, procrastination patterns, and productivity recommendations.">
     <title>Insights — LIFEOS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=6">
 </head>
-<body class="bg-[#0F0F1A] text-white min-h-screen">
+<body class="bg-[#09090F] text-white min-h-screen">
 
-    <!-- Nav -->
-    <nav class="bg-[#0F0F1A]/80 backdrop-blur-xl border-b border-[#2D2D4E] px-6 py-3 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-6">
-                <a href="index.html" class="flex items-center gap-2">
-                    <span class="text-xl">🧠</span>
-                    <span class="font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">LIFEOS</span>
+    <!-- Ambient Glow Background -->
+    <div class="glow-bg">
+        <div class="glow-blob glow-purple"></div>
+        <div class="glow-blob glow-blue"></div>
+        <div class="glow-blob glow-pink"></div>
+    </div>
+
+    <!-- Mobile Top Bar -->
+    <header class="mobile-top-bar">
+        <div class="flex items-center gap-2">
+            <span class="text-xl">🧠</span>
+            <span class="font-extrabold text-base bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">LIFEOS</span>
+        </div>
+        <button id="mobileMenuBtn" class="text-white focus:outline-none" onclick="toggleMobileSidebar()">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+    </header>
+
+    <div class="app-container">
+        
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar" id="appSidebar">
+            <a href="dashboard.html" class="sidebar-logo">
+                <span class="logo-symbol">🧠</span>
+                <span class="logo-text">LIFEOS</span>
+            </a>
+            
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="dashboard.html" class="sidebar-link" id="nav-dashboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="onboard.html" class="sidebar-link" id="nav-dump">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        Brain Dump
+                    </a>
+                </li>
+                <li>
+                    <a href="plan.html" class="sidebar-link" id="nav-plan">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+                        AI Plan
+                    </a>
+                </li>
+                <li>
+                    <a href="calendar.html" class="sidebar-link" id="nav-calendar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        Calendar
+                    </a>
+                </li>
+                <li>
+                    <a href="insights.html" class="sidebar-link" id="nav-insights">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        Insights
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-profile" id="userAvatar" onclick="toggleUserMenu()">
+                    <img id="sidebarUserPhoto" src="https://ui-avatars.com/api/?name=User&background=7C5CFF&color=fff" alt="User" class="user-avatar">
+                    <div class="user-info">
+                        <div id="sidebarUserName" class="user-name">Loading...</div>
+                        <div id="sidebarUserEmail" class="user-email">email@domain.com</div>
+                    </div>
+                </div>
+                <!-- Custom Dropdown Menu for Logout -->
+                <div id="userMenu" style="display:none; position:absolute; bottom:calc(100% + 8px); left:16px; right:16px;
+                     background: rgba(18,19,37,0.98); border:1px solid var(--border-default); border-radius:16px;
+                     padding:1rem; box-shadow: 0 16px 40px rgba(0,0,0,0.5); z-index:100;
+                     backdrop-filter: blur(20px);">
+                    <a href="/auth/logout"
+                       style="display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1rem;border-radius:12px;
+                              background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);
+                              color:#F87171;font-size:13px;font-weight:600;text-decoration:none;transition:all 0.2s;"
+                       onmouseover="this.style.background='rgba(239,68,68,0.2)'"
+                       onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+                        🚪 Sign Out
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-workspace">
+            
+            <!-- Page Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight">Analytics & <span class="text-gradient">Insights</span></h1>
+                    <p class="text-sm text-slate-400 mt-1">AI-powered behavioral analysis of your productivity habits.</p>
+                </div>
+                <button onclick="generateWeeklyReview()" class="btn-primary text-sm" style="padding: 10px 24px;">
+                    📊 Generate Weekly Review
+                </button>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                
+                <!-- Productivity Trend Line Chart -->
+                <div class="glass-card">
+                    <h3 class="font-bold text-sm text-slate-400 mb-4 uppercase tracking-wider">Productivity Trend</h3>
+                    <div style="height: 240px; position: relative;">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Bar Chart -->
+                <div class="glass-card">
+                    <h3 class="font-bold text-sm text-slate-400 mb-4 uppercase tracking-wider">Tasks by Category</h3>
+                    <div style="height: 240px; position: relative;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Status Distribution Doughnut Chart -->
+                <div class="glass-card flex flex-col justify-between" style="min-height: 320px;">
+                    <h3 class="font-bold text-sm text-slate-400 mb-4 uppercase tracking-wider">Completion Ratios</h3>
+                    <div style="height: 200px; display: flex; align-items: center; justify-content: center; position: relative;">
+                        <div style="width: 180px; height: 180px;">
+                            <canvas id="completionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Peak Hour bar chart -->
+                <div class="glass-card">
+                    <h3 class="font-bold text-sm text-slate-400 mb-4 uppercase tracking-wider">Hourly Completion Heatmap</h3>
+                    <div style="height: 240px; position: relative;">
+                        <canvas id="hourChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Behavioral analysis containers -->
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                
+                <!-- Procrastination details -->
+                <div class="glass-card">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="text-lg">🔍</span>
+                        <h3 class="font-bold text-sm text-[#A78BFA] uppercase tracking-wider">Procrastination Patterns</h3>
+                    </div>
+                    <div id="patternsContainer" class="space-y-4">
+                        <div class="skeleton" style="height: 40px;"></div>
+                        <div class="skeleton" style="height: 40px;"></div>
+                        <div class="skeleton" style="height: 40px;"></div>
+                    </div>
+                </div>
+
+                <!-- Recommendations list -->
+                <div class="glass-card">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="text-lg">💡</span>
+                        <h3 class="font-bold text-sm text-[#A78BFA] uppercase tracking-wider">AI Recommendations</h3>
+                    </div>
+                    <div id="recommendationsContainer" class="space-y-3">
+                        <div class="skeleton" style="height: 40px;"></div>
+                        <div class="skeleton" style="height: 40px;"></div>
+                        <div class="skeleton" style="height: 40px;"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Weekly Review Outcome Display -->
+            <div id="reviewSection" class="hidden">
+                <div class="glass-card border border-indigo-500/20 shadow-[0_0_20px_rgba(124,92,255,0.06)]">
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="text-xl">📈</span>
+                        <h2 class="text-xl font-bold">Autogenerated Weekly Review</h2>
+                    </div>
+
+                    <div class="grid md:grid-cols-4 gap-4 mb-6">
+                        <div class="stat-card">
+                            <div id="reviewScore" class="stat-value">0</div>
+                            <div class="stat-label">Productivity</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="reviewCompleted" class="stat-value text-2xl" style="-webkit-text-fill-color: #10B981;">0</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="reviewMissed" class="stat-value text-2xl" style="-webkit-text-fill-color: #EF4444;">0</div>
+                            <div class="stat-label">Missed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="reviewStreak" class="stat-value text-2xl">0</div>
+                            <div class="stat-label">Day Streak</div>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6 pt-4 border-t border-white/[0.04]">
+                        <div>
+                            <h4 class="text-xs font-bold text-emerald-400 mb-3 uppercase tracking-wider">✅ Weekly Accomplishments</h4>
+                            <div id="reviewWins" class="space-y-2 text-sm text-slate-300"></div>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-red-400 mb-3 uppercase tracking-wider">❌ Gaps & Overdue Tasks</h4>
+                            <div id="reviewLosses" class="space-y-2 text-sm text-slate-300"></div>
+                        </div>
+                    </div>
+
+                    <div id="reviewFocus" class="mt-6 p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
+                        <span class="text-[10px] font-bold text-[#A78BFA] uppercase tracking-wider">🎯 Suggested Next Week Focus</span>
+                        <p id="reviewFocusText" class="text-sm text-slate-300 mt-2 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-bottom-nav">
+        <ul>
+            <li>
+                <a href="dashboard.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                    <span>Dashboard</span>
                 </a>
-                <div class="hidden md:flex items-center gap-1">
-                    <a href="dashboard.html" class="nav-link">Dashboard</a>
-                    <a href="onboard.html" class="nav-link">Brain Dump</a>
-                    <a href="calendar.html" class="nav-link">Calendar</a>
-                    <a href="insights.html" class="nav-link active">Insights</a>
-                </div>
-            </div>
-            <button onclick="generateWeeklyReview()" class="btn-primary text-sm">
-                📊 Generate Review
-            </button>
-        </div>
-    </nav>
-
-    <div class="max-w-7xl mx-auto px-6 py-8">
-        <div class="mb-8 animate-slide-up">
-            <h1 class="text-2xl font-bold">Analytics & <span class="gradient-text">Insights</span></h1>
-            <p class="text-slate-400 text-sm mt-1">AI-powered behavioral analysis of your productivity patterns.</p>
-        </div>
-
-        <!-- Charts Grid -->
-        <div class="grid md:grid-cols-2 gap-6 mb-8">
-            <!-- Productivity Over Time -->
-            <div class="glass-card animate-slide-up delay-1">
-                <h3 class="font-semibold mb-4 text-sm text-slate-400 uppercase tracking-wider">Productivity Trend</h3>
-                <div style="height: 250px;">
-                    <canvas id="weeklyChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Tasks by Category -->
-            <div class="glass-card animate-slide-up delay-2">
-                <h3 class="font-semibold mb-4 text-sm text-slate-400 uppercase tracking-wider">Tasks by Category</h3>
-                <div style="height: 250px;">
-                    <canvas id="categoryChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Completion Rate -->
-            <div class="glass-card animate-slide-up delay-3">
-                <h3 class="font-semibold mb-4 text-sm text-slate-400 uppercase tracking-wider">Completion Rate</h3>
-                <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
-                    <div style="width: 200px; height: 200px;">
-                        <canvas id="completionChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Hour Productivity -->
-            <div class="glass-card animate-slide-up delay-4">
-                <h3 class="font-semibold mb-4 text-sm text-slate-400 uppercase tracking-wider">Productivity by Hour</h3>
-                <div style="height: 250px;">
-                    <canvas id="hourChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Patterns & Recommendations -->
-        <div class="grid md:grid-cols-2 gap-6 mb-8">
-            <!-- Patterns -->
-            <div class="glass-card animate-slide-up delay-5">
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="text-lg">🔍</span>
-                    <h3 class="font-semibold">Procrastination Patterns</h3>
-                </div>
-                <div id="patternsContainer" class="space-y-3">
-                    <div class="skeleton" style="height: 40px;"></div>
-                    <div class="skeleton" style="height: 40px;"></div>
-                    <div class="skeleton" style="height: 40px;"></div>
-                </div>
-            </div>
-
-            <!-- Recommendations -->
-            <div class="glass-card animate-slide-up delay-6">
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="text-lg">💡</span>
-                    <h3 class="font-semibold">AI Recommendations</h3>
-                </div>
-                <div id="recommendationsContainer" class="space-y-3">
-                    <div class="skeleton" style="height: 40px;"></div>
-                    <div class="skeleton" style="height: 40px;"></div>
-                    <div class="skeleton" style="height: 40px;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Weekly Review Section -->
-        <div id="reviewSection" class="hidden animate-slide-up">
-            <div class="glass-card">
-                <div class="flex items-center gap-2 mb-6">
-                    <span class="text-xl">📈</span>
-                    <h2 class="text-xl font-bold">Weekly Review</h2>
-                </div>
-
-                <div class="grid md:grid-cols-4 gap-4 mb-6">
-                    <div class="stat-card">
-                        <div id="reviewScore" class="stat-value">0</div>
-                        <div class="stat-label">Score</div>
-                    </div>
-                    <div class="stat-card">
-                        <div id="reviewCompleted" class="stat-value text-xl" style="-webkit-text-fill-color: #10B981;">0</div>
-                        <div class="stat-label">Completed</div>
-                    </div>
-                    <div class="stat-card">
-                        <div id="reviewMissed" class="stat-value text-xl" style="-webkit-text-fill-color: #EF4444;">0</div>
-                        <div class="stat-label">Missed</div>
-                    </div>
-                    <div class="stat-card">
-                        <div id="reviewStreak" class="stat-value text-xl">0</div>
-                        <div class="stat-label">Streak</div>
-                    </div>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-4">
-                    <div>
-                        <h4 class="text-sm font-bold text-emerald-400 mb-2">✅ Wins</h4>
-                        <div id="reviewWins" class="space-y-1 text-sm text-slate-300"></div>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold text-red-400 mb-2">❌ Misses</h4>
-                        <div id="reviewLosses" class="space-y-1 text-sm text-slate-300"></div>
-                    </div>
-                </div>
-
-                <div id="reviewFocus" class="mt-4 insight-card">
-                    <span class="text-xs font-bold text-indigo-400">🎯 NEXT WEEK FOCUS</span>
-                    <p id="reviewFocusText" class="text-sm text-slate-300 mt-1"></p>
-                </div>
-            </div>
-        </div>
-
+            </li>
+            <li>
+                <a href="onboard.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <span>Dump</span>
+                </a>
+            </li>
+            <li>
+                <a href="plan.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+                    <span>AI Plan</span>
+                </a>
+            </li>
+            <li>
+                <a href="calendar.html" class="mobile-bottom-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Calendar</span>
+                </a>
+            </li>
+            <li>
+                <a href="insights.html" class="mobile-bottom-link active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Insights</span>
+                </a>
+            </li>
+        </ul>
     </div>
 
-    <!-- Mobile Nav -->
-    <div class="fixed bottom-0 left-0 right-0 bg-[#0F0F1A]/90 backdrop-blur-xl border-t border-[#2D2D4E] md:hidden z-50">
-        <div class="flex justify-around py-3">
-            <a href="dashboard.html" class="flex flex-col items-center gap-1 text-slate-400"><span>🏠</span><span class="text-[10px]">Home</span></a>
-            <a href="onboard.html" class="flex flex-col items-center gap-1 text-slate-400"><span>🧠</span><span class="text-[10px]">Dump</span></a>
-            <a href="calendar.html" class="flex flex-col items-center gap-1 text-slate-400"><span>📅</span><span class="text-[10px]">Calendar</span></a>
-            <a href="insights.html" class="flex flex-col items-center gap-1 text-indigo-400"><span>📊</span><span class="text-[10px]">Insights</span></a>
-        </div>
-    </div>
-
-    <script src="js/app.js"></script>
-    <script src="js/charts.js"></script>
+    <!-- Scripts -->
+    <script src="js/app.js?v=3"></script>
+    <script src="js/charts.js?v=3"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             try {
@@ -179,6 +284,10 @@
             loadInsights();
         });
 
+        function toggleMobileSidebar() {
+            document.getElementById('appSidebar').classList.toggle('open');
+        }
+
         async function loadInsights() {
             try {
                 const data = await getInsights();
@@ -186,7 +295,7 @@
                 const patterns = data.patterns || {};
                 const recs = data.recommendations || [];
 
-                // Render charts
+                // Render charts with styled functions
                 createWeeklyChart('weeklyChart', charts.weekly_productivity);
                 createCategoryChart('categoryChart', charts.category_distribution);
                 createCompletionChart('completionChart', charts.status_distribution);
@@ -195,66 +304,62 @@
                 // Render patterns
                 const patternsEl = document.getElementById('patternsContainer');
                 const patternItems = [
-                    { label: 'Most Avoided', value: patterns.most_avoided_category || 'None', icon: '🚫' },
-                    { label: 'Peak Hour', value: `${patterns.best_productivity_hour || 9}:00`, icon: '⚡' },
-                    { label: 'Power Day', value: patterns.peak_day || 'Monday', icon: '💪' },
+                    { label: 'Most Avoided Category', value: patterns.most_avoided_category || 'None', icon: '🚫' },
+                    { label: 'Peak Hour Cap', value: `${patterns.best_productivity_hour || 9}:00`, icon: '⚡' },
+                    { label: 'Power Completion Day', value: patterns.peak_day || 'Monday', icon: '💪' },
                     { label: 'Completion Rate', value: `${Math.round((patterns.completion_rate || 0) * 100)}%`, icon: '📊' },
-                    { label: 'Avg Postponements', value: `${patterns.avg_procrastination_days || 0}x`, icon: '⏳' },
+                    { label: 'Average Postpones', value: `${patterns.avg_procrastination_days || 0}x`, icon: '⏳' },
                 ];
 
                 patternsEl.innerHTML = patternItems.map(p => `
-                    <div class="flex justify-between items-center py-2 border-b border-[#2D2D4E] last:border-0">
-                        <span class="text-sm text-slate-400">${p.icon} ${p.label}</span>
-                        <span class="text-sm font-semibold">${p.value}</span>
+                    <div class="flex justify-between items-center py-2 border-b border-white/[0.04] last:border-0 text-xs">
+                        <span class="text-slate-400 font-medium">${p.icon} ${p.label}</span>
+                        <span class="font-bold text-white">${p.value.toUpperCase()}</span>
                     </div>
                 `).join('');
 
-                // Chronic postponers
+                // Chronic postpones alert
                 if (patterns.chronic_postponers && patterns.chronic_postponers.length > 0) {
                     patternsEl.innerHTML += `
-                        <div class="mt-3 p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                            <span class="text-xs font-bold text-amber-400">⚠ Frequently Postponed:</span>
-                            ${patterns.chronic_postponers.map(t => `<div class="text-xs text-amber-300 mt-1">→ ${escapeHtml(t)}</div>`).join('')}
+                        <div class="mt-3 p-3 bg-amber-500/10 rounded-xl border border-amber-500/25">
+                            <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">⚠️ Chronically Delayed:</span>
+                            ${patterns.chronic_postponers.map(t => `<div class="text-xs text-amber-300 mt-1 font-semibold">→ ${escapeHtml(t)}</div>`).join('')}
                         </div>
                     `;
                 }
 
-                // Render recommendations
+                // Render AI recommendations
                 const recsEl = document.getElementById('recommendationsContainer');
                 recsEl.innerHTML = recs.map((rec, i) => `
-                    <div class="insight-card animate-slide-up" style="animation-delay: ${0.1 * i}s">
-                        <p class="text-sm text-slate-300">${escapeHtml(rec)}</p>
+                    <div class="insight-card py-3 px-4 animate-slide-up" style="animation-delay: ${0.08 * i}s">
+                        <p class="text-xs text-slate-300 leading-relaxed">• ${escapeHtml(rec)}</p>
                     </div>
                 `).join('');
 
-                // Show intervention
                 if (data.intervention_needed && data.intervention_message) {
                     recsEl.innerHTML = `
-                        <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-3">
-                            <span class="text-xs font-bold text-red-400">⚠️ INTERVENTION</span>
-                            <p class="text-sm text-red-300 mt-1">${escapeHtml(data.intervention_message)}</p>
+                        <div class="bg-red-500/10 border border-red-500/25 rounded-2xl p-4 mb-3">
+                            <span class="text-[10px] font-bold text-red-400 uppercase tracking-widest">⚠️ Intervention needed</span>
+                            <p class="text-xs text-red-300 mt-1 font-medium">${escapeHtml(data.intervention_message)}</p>
                         </div>
                     ` + recsEl.innerHTML;
                 }
 
-                // Check and load pre-generated review for the current week
+                // Pre-generated review load
                 try {
                     const reviewRes = await api.get(`/review/current/${DEFAULT_USER_ID}`);
                     if (reviewRes && reviewRes.exists && reviewRes.review) {
                         renderWeeklyReview(reviewRes.review);
                     }
                 } catch (revErr) {
-                    console.error('Failed to load pre-generated weekly review:', revErr);
+                    console.error('Failed to load pre-generated review:', revErr);
                 }
 
             } catch (err) {
                 console.error('Failed to load insights:', err);
-                document.getElementById('patternsContainer').innerHTML =
-                    '<p class="text-sm text-slate-500">Start completing tasks to see patterns.</p>';
-                document.getElementById('recommendationsContainer').innerHTML =
-                    '<p class="text-sm text-slate-500">Complete more tasks for AI recommendations.</p>';
+                document.getElementById('patternsContainer').innerHTML = '<p class="text-xs text-slate-500">No patterns recorded.</p>';
+                document.getElementById('recommendationsContainer').innerHTML = '<p class="text-xs text-slate-500">Complete tasks to show tips.</p>';
 
-                // Still create charts with empty data
                 createWeeklyChart('weeklyChart', [0, 0, 0, 0]);
                 createCategoryChart('categoryChart', { personal: 0 });
                 createCompletionChart('completionChart', { pending: 1 });
@@ -262,6 +367,7 @@
             }
         }
 
+        // Render weekly review details
         function renderWeeklyReview(review) {
             document.getElementById('reviewSection').classList.remove('hidden');
 
@@ -271,28 +377,28 @@
             document.getElementById('reviewStreak').textContent = review.streak_days || 0;
 
             document.getElementById('reviewWins').innerHTML =
-                (review.wins || []).map(w => `<div>${escapeHtml(w)}</div>`).join('') || '<div class="text-slate-500">No wins yet</div>';
+                (review.wins || []).map(w => `<div class="text-slate-300 font-semibold">• ${escapeHtml(w)}</div>`).join('') || '<div class="text-slate-500 text-xs">No entries.</div>';
             document.getElementById('reviewLosses').innerHTML =
-                (review.losses || []).map(l => `<div>${escapeHtml(l)}</div>`).join('') || '<div class="text-slate-500">No misses!</div>';
-            document.getElementById('reviewFocusText').textContent = review.next_week_focus || 'Keep going!';
+                (review.losses || []).map(l => `<div class="text-slate-300 font-semibold">• ${escapeHtml(l)}</div>`).join('') || '<div class="text-slate-500 text-xs">No entries.</div>';
+            document.getElementById('reviewFocusText').textContent = review.next_week_focus || 'Plan is optimal.';
         }
 
+        // Trigger weekly review generation
         async function generateWeeklyReview() {
-            showToast('Generating weekly review...', 'info');
+            showToast('Compiling weekly statistics...', 'info');
             try {
                 const data = await generateReview();
                 if (data.review) {
                     renderWeeklyReview(data.review);
                     document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth' });
-                    showToast('Review generated! 📈', 'success');
+                    showToast('Weekly review compiled! 📈', 'success');
                 } else {
-                    showToast('No review returned from server', 'warning');
+                    showToast('No review details returned.', 'warning');
                 }
             } catch (err) {
-                showToast('Failed to generate review', 'error');
+                showToast('Failed to compile review.', 'error');
             }
         }
     </script>
-
 </body>
 </html>

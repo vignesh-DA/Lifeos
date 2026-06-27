@@ -5,8 +5,8 @@
 
 // ─── Chart.js Global Defaults ───
 if (typeof Chart !== 'undefined') {
-    Chart.defaults.color = '#94A3B8';
-    Chart.defaults.borderColor = 'rgba(45, 45, 78, 0.5)';
+    Chart.defaults.color = '#9CA3AF';
+    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.06)';
     Chart.defaults.font.family = "'Inter', sans-serif";
 }
 
@@ -17,14 +17,23 @@ function createProductivityChart(canvasId, score) {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
 
+    window.myCharts = window.myCharts || {};
+    if (window.myCharts[canvasId]) {
+        window.myCharts[canvasId].destroy();
+    }
+    const existingChart = Chart.getChart(canvasId);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
     const scoreColor = score >= 70 ? '#10B981' : score >= 40 ? '#F59E0B' : '#EF4444';
 
-    return new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             datasets: [{
                 data: [score, 100 - score],
-                backgroundColor: [scoreColor, 'rgba(45, 45, 78, 0.3)'],
+                backgroundColor: [scoreColor, 'rgba(255, 255, 255, 0.04)'],
                 borderWidth: 0,
                 cutout: '78%',
             }],
@@ -48,12 +57,12 @@ function createProductivityChart(canvasId, score) {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
-                ctx.font = 'bold 28px Inter';
-                ctx.fillStyle = '#F8FAFC';
-                ctx.fillText(score, centerX, centerY - 8);
+                ctx.font = 'bold 26px Inter';
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillText(score, centerX, centerY - 6);
 
-                ctx.font = '11px Inter';
-                ctx.fillStyle = '#94A3B8';
+                ctx.font = 'bold 9px Inter';
+                ctx.fillStyle = '#9CA3AF';
                 ctx.fillText('SCORE', centerX, centerY + 16);
 
                 ctx.restore();
@@ -69,6 +78,15 @@ function createWeeklyChart(canvasId, weeklyData) {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
 
+    window.myCharts = window.myCharts || {};
+    if (window.myCharts[canvasId]) {
+        window.myCharts[canvasId].destroy();
+    }
+    const existingChart = Chart.getChart(canvasId);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
     const labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
     const data = weeklyData || [45, 52, 68, 74];
 
@@ -79,15 +97,15 @@ function createWeeklyChart(canvasId, weeklyData) {
             datasets: [{
                 label: 'Productivity Score',
                 data,
-                borderColor: '#6366F1',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                borderColor: '#7C5CFF',
+                backgroundColor: 'rgba(124, 92, 255, 0.08)',
                 fill: true,
                 tension: 0.4,
-                pointRadius: 6,
-                pointHoverRadius: 8,
-                pointBackgroundColor: '#6366F1',
-                pointBorderColor: '#0F0F1A',
-                pointBorderWidth: 3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: '#7C5CFF',
+                pointBorderColor: '#09090F',
+                pointBorderWidth: 2,
                 borderWidth: 3,
             }],
         },
@@ -101,7 +119,7 @@ function createWeeklyChart(canvasId, weeklyData) {
                 y: {
                     min: 0,
                     max: 100,
-                    grid: { color: 'rgba(45, 45, 78, 0.3)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.04)' },
                     ticks: { stepSize: 25 },
                 },
                 x: {
@@ -119,18 +137,27 @@ function createCategoryChart(canvasId, categoryData) {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
 
+    window.myCharts = window.myCharts || {};
+    if (window.myCharts[canvasId]) {
+        window.myCharts[canvasId].destroy();
+    }
+    const existingChart = Chart.getChart(canvasId);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
     const categories = Object.keys(categoryData || {});
     const values = Object.values(categoryData || {});
 
     const colors = {
-        academic: '#6366F1',
-        career: '#8B5CF6',
+        academic: '#7C5CFF',
+        career: '#A855F7',
         finance: '#10B981',
         personal: '#F59E0B',
         health: '#EC4899',
     };
 
-    const bgColors = categories.map(c => colors[c] || '#6366F1');
+    const bgColors = categories.map(c => colors[c] || '#7C5CFF');
 
     return new Chart(ctx, {
         type: 'bar',
@@ -141,9 +168,9 @@ function createCategoryChart(canvasId, categoryData) {
                 data: values,
                 backgroundColor: bgColors.map(c => c + '80'),
                 borderColor: bgColors,
-                borderWidth: 2,
+                borderWidth: 1.5,
                 borderRadius: 8,
-                barPercentage: 0.6,
+                barPercentage: 0.5,
             }],
         },
         options: {
@@ -155,7 +182,7 @@ function createCategoryChart(canvasId, categoryData) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(45, 45, 78, 0.3)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.04)' },
                     ticks: { stepSize: 1 },
                 },
                 x: {
@@ -173,6 +200,15 @@ function createCompletionChart(canvasId, statusData) {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
 
+    window.myCharts = window.myCharts || {};
+    if (window.myCharts[canvasId]) {
+        window.myCharts[canvasId].destroy();
+    }
+    const existingChart = Chart.getChart(canvasId);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
     const labels = Object.keys(statusData || {}).map(s =>
         s.charAt(0).toUpperCase() + s.slice(1)
     );
@@ -182,7 +218,7 @@ function createCompletionChart(canvasId, statusData) {
         completed: '#10B981',
         pending: '#F59E0B',
         overdue: '#EF4444',
-        in_progress: '#6366F1',
+        in_progress: '#7C5CFF',
         cancelled: '#64748B',
     };
 
@@ -194,9 +230,9 @@ function createCompletionChart(canvasId, statusData) {
             labels,
             datasets: [{
                 data: values,
-                backgroundColor: bgColors.map(c => c + '99'),
+                backgroundColor: bgColors.map(c => c + '30'),
                 borderColor: bgColors,
-                borderWidth: 2,
+                borderWidth: 1.5,
             }],
         },
         options: {
@@ -206,9 +242,10 @@ function createCompletionChart(canvasId, statusData) {
                 legend: {
                     position: 'bottom',
                     labels: {
+                        color: '#9CA3AF',
                         padding: 15,
                         usePointStyle: true,
-                        pointStyleWidth: 10,
+                        pointStyleWidth: 8,
                     },
                 },
             },
@@ -223,6 +260,15 @@ function createHourChart(canvasId, hourData) {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
 
+    window.myCharts = window.myCharts || {};
+    if (window.myCharts[canvasId]) {
+        window.myCharts[canvasId].destroy();
+    }
+    const existingChart = Chart.getChart(canvasId);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
     const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
     const values = hours.map((_, i) => (hourData || {})[String(i)] || 0);
 
@@ -234,12 +280,12 @@ function createHourChart(canvasId, hourData) {
                 label: 'Tasks Completed',
                 data: values.filter((_, i) => i >= 6 && i <= 23),
                 backgroundColor: values.filter((_, i) => i >= 6 && i <= 23).map(v => {
-                    if (v >= 3) return 'rgba(99, 102, 241, 0.8)';
-                    if (v >= 1) return 'rgba(99, 102, 241, 0.4)';
-                    return 'rgba(45, 45, 78, 0.3)';
+                    if (v >= 3) return 'rgba(124, 92, 255, 0.8)';
+                    if (v >= 1) return 'rgba(124, 92, 255, 0.4)';
+                    return 'rgba(255, 255, 255, 0.04)';
                 }),
                 borderRadius: 4,
-                barPercentage: 0.7,
+                barPercentage: 0.6,
             }],
         },
         options: {
@@ -251,7 +297,7 @@ function createHourChart(canvasId, hourData) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(45, 45, 78, 0.3)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.04)' },
                     ticks: { stepSize: 1 },
                 },
                 x: {

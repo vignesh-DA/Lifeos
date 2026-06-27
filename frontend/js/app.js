@@ -401,6 +401,34 @@ async function handleCompleteTask(taskId) {
     }
 }
 
+async function handleDeleteTask(taskId) {
+    if (!confirm('Are you sure you want to delete this task?')) return;
+    try {
+        await deleteTask(taskId);
+        showToast('Task deleted successfully');
+
+        // Remove card with animation
+        const card = document.querySelector(`[data-task-id="${taskId}"]`);
+        if (card) {
+            card.style.transition = 'all 0.4s ease';
+            card.style.transform = 'scale(0.9)';
+            card.style.opacity = '0';
+            setTimeout(() => card.remove(), 400);
+        }
+
+        // Refresh data if functions exist
+        if (typeof refreshDashboard === 'function') refreshDashboard();
+        if (typeof loadCalendarEvents === 'function') {
+            const calendarTasks = await loadCalendarEvents();
+            if (typeof renderSidebar === 'function') renderSidebar(calendarTasks);
+            if (typeof updateAIInsight === 'function') updateAIInsight(calendarTasks);
+        }
+        if (typeof loadInsights === 'function') loadInsights();
+    } catch (err) {
+        showToast('Failed to delete task', 'error');
+    }
+}
+
 async function handleCrisisMode(taskId, taskTitle) {
     // Redirect to crisis page with task info
     const params = new URLSearchParams({
@@ -409,6 +437,50 @@ async function handleCrisisMode(taskId, taskTitle) {
     });
     window.location.href = `crisis.html?${params.toString()}`;
 }
+
+// Toggle user dropdown footer menu
+window.toggleUserMenu = function() {
+    const menu = document.getElementById('userMenu');
+    if (menu) {
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+};
+
+document.addEventListener('click', (e) => {
+    const avatar = document.getElementById('userAvatar');
+    if (avatar && !avatar.contains(e.target)) {
+        const menu = document.getElementById('userMenu');
+        if (menu) menu.style.display = 'none';
+    }
+});
+
+// Sidebar Navigation Highlights and User Avatar Binding
+document.addEventListener('DOMContentLoaded', () => {
+    const path = window.location.pathname;
+    let activeId = '';
+    if (path.includes('dashboard.html')) activeId = 'nav-dashboard';
+    else if (path.includes('onboard.html')) activeId = 'nav-dump';
+    else if (path.includes('plan.html')) activeId = 'nav-plan';
+    else if (path.includes('calendar.html')) activeId = 'nav-calendar';
+    else if (path.includes('insights.html')) activeId = 'nav-insights';
+
+    if (activeId) {
+        const link = document.getElementById(activeId);
+        if (link) link.classList.add('active');
+    }
+
+    // Auto load user profile for sidebar
+    fetch('/auth/me').then(r => r.json()).then(data => {
+        if (data.user) {
+            const photoEl = document.getElementById('sidebarUserPhoto');
+            const nameEl = document.getElementById('sidebarUserName');
+            const emailEl = document.getElementById('sidebarUserEmail');
+            if (photoEl) photoEl.src = data.user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name || 'User')}&background=7C5CFF&color=fff`;
+            if (nameEl) nameEl.textContent = data.user.name || 'User';
+            if (emailEl) emailEl.textContent = data.user.email || '';
+        }
+    }).catch(() => {});
+});
 
 /**
  * Format date for display.

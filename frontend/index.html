@@ -6,122 +6,178 @@
     <meta name="description" content="LIFEOS — Your Personal AI Life Operating System. Stop managing time. Let AI own it. Autonomous planning, crisis mode, and smart scheduling.">
     <title>LIFEOS — Your Personal Life Operating System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#09090F',
+                        surfaceCard: '#121325',
+                        primaryPurple: '#7C5CFF',
+                        secondaryPurple: '#A855F7',
+                        accentCyan: '#22D3EE',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css?v=6">
+    <style>
+        /* Specific page override if any */
+        .hero-section {
+            position: relative;
+            padding-top: var(--space-7);
+            padding-bottom: var(--space-6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+    </style>
 </head>
-<body class="bg-[#0F0F1A] text-white">
+<body class="bg-[#09090F] text-white">
 
-    <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 bg-[#0F0F1A]/80 backdrop-blur-xl border-b border-[#2D2D4E]">
+    <!-- Ambient Glow Blobs -->
+    <div class="glow-bg">
+        <div class="glow-blob glow-purple"></div>
+        <div class="glow-blob glow-blue"></div>
+        <div class="glow-blob glow-pink"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 w-full z-50 bg-[#09090F]/70 backdrop-blur-xl border-b border-white/[0.06]">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="text-2xl">🧠</span>
-                <span class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">LIFEOS</span>
-            </div>
-            <div class="hidden md:flex items-center gap-6">
-                <a href="#features" class="nav-link">Features</a>
-                <a href="#how-it-works" class="nav-link">How It Works</a>
-                <a href="#testimonials" class="nav-link">Stories</a>
-                <a href="login.html" class="btn-primary">
+            <a href="index.html" class="flex items-center gap-3 text-decoration-none">
+                <span class="logo-symbol">🧠</span>
+                <span class="logo-text">LIFEOS</span>
+            </a>
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#features" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Features</a>
+                <a href="#how-it-works" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">How It Works</a>
+                <a href="#stories" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Stories</a>
+                <a href="login.html" class="btn-primary text-sm" style="padding: 10px 22px;">
                     🚀 Get Started
                 </a>
             </div>
-            <a href="login.html" class="md:hidden btn-primary text-sm">Get Started</a>
+            <a href="login.html" class="md:hidden btn-primary text-sm" style="padding: 8px 16px;">Get Started</a>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-gradient min-h-screen flex items-center pt-20">
-        <div class="max-w-7xl mx-auto px-6 py-20">
-            <div class="max-w-3xl">
-                <div class="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-4 py-1.5 text-sm text-indigo-300 mb-6 animate-slide-up">
+    <section class="hero-section">
+        <div class="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-12 items-center">
+            <!-- Left Info -->
+            <div class="space-y-8">
+                <div class="inline-flex items-center gap-2 bg-[#7C5CFF]/10 border border-[#7C5CFF]/25 rounded-full px-4 py-1.5 text-xs text-[#A78BFA] font-semibold">
                     <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
                     VIBE2SHIP Hackathon 2026
                 </div>
 
-                <h1 class="hero-title animate-slide-up delay-1">
+                <h1 class="text-5xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight">
                     Stop managing time.<br>
-                    <span class="gradient-text">Let AI own it.</span>
+                    <span class="text-gradient">Let AI own it.</span>
                 </h1>
 
-                <p class="text-lg text-slate-400 mt-6 max-w-xl leading-relaxed animate-slide-up delay-2">
-                    LIFEOS is your autonomous AI life operating system. Just brain dump everything on your mind — assignments, bills, interviews — and watch AI create the perfect plan.
+                <p class="text-lg text-[#9CA3AF] max-w-lg leading-relaxed">
+                    LIFEOS is your autonomous AI life operating system. Just brain dump everything on your mind — assignments, bills, interviews, chaotic ideas — and watch AI create the perfect plan.
                 </p>
 
-                <div class="flex flex-col sm:flex-row gap-4 mt-10 animate-slide-up delay-3">
-                    <a href="login.html" class="btn-primary text-lg px-8 py-4">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="login.html" class="btn-primary text-lg" style="padding: 16px 36px;">
                         🧠 Dump Your Brain
                     </a>
-                    <a href="login.html" class="btn-ghost text-lg px-8 py-4 border-[#2D2D4E] text-slate-300 hover:text-white">
+                    <a href="login.html" class="btn-secondary text-lg" style="padding: 16px 36px;">
                         Sign In →
                     </a>
                 </div>
 
-                <div class="flex items-center gap-8 mt-12 animate-slide-up delay-4">
-                    <div class="text-center">
+                <!-- Live stats -->
+                <div class="flex items-center gap-8 pt-4">
+                    <div>
                         <div class="text-2xl font-bold text-white">10</div>
-                        <div class="text-xs text-slate-500">AI Tools</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">AI Engines</div>
                     </div>
-                    <div class="w-px h-8 bg-[#2D2D4E]"></div>
-                    <div class="text-center">
+                    <div class="w-px h-8 bg-white/[0.08]"></div>
+                    <div>
                         <div class="text-2xl font-bold text-white">0</div>
-                        <div class="text-xs text-slate-500">Missed Deadlines</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Missed Deadlines</div>
                     </div>
-                    <div class="w-px h-8 bg-[#2D2D4E]"></div>
-                    <div class="text-center">
+                    <div class="w-px h-8 bg-white/[0.08]"></div>
+                    <div>
                         <div class="text-2xl font-bold text-white">∞</div>
-                        <div class="text-xs text-slate-500">Peace of Mind</div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Peace of Mind</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Right Neural Wireframe Brain Display -->
+            <div class="brain-container flex items-center justify-center">
+                <!-- Particles Canvas -->
+                <canvas id="brainCanvas" class="absolute inset-0" width="500" height="500"></canvas>
+
+                <!-- Floating Glowing Icon Nodes -->
+                <!-- Task Node -->
+                <div class="floating-icon-node node-task animate-float" style="top: 15%; left: 15%; animation-delay: 0s;" title="Task Extraction">📋</div>
+                <!-- Calendar Node -->
+                <div class="floating-icon-node node-calendar animate-float" style="top: 12%; right: 18%; animation-delay: 0.5s;" title="Smart Scheduler">📅</div>
+                <!-- Mic Node -->
+                <div class="floating-icon-node node-mic animate-float" style="top: 48%; left: 5%; animation-delay: 1.2s;" title="Voice Inputs">🎙️</div>
+                <!-- Spark Node -->
+                <div class="floating-icon-node node-spark animate-float" style="bottom: 15%; left: 22%; animation-delay: 0.8s;" title="AI Co-pilot">✨</div>
+                <!-- Checklist Node -->
+                <div class="floating-icon-node node-checklist animate-float" style="bottom: 12%; right: 20%; animation-delay: 1.5s;" title="Conflict Resolution">✅</div>
+                <!-- Lightning Node -->
+                <div class="floating-icon-node node-lightning animate-float" style="top: 45%; right: 5%; animation-delay: 2s;" title="Crisis Mode">⚡</div>
             </div>
         </div>
     </section>
 
     <!-- How It Works -->
-    <section id="how-it-works" class="py-24 px-6">
+    <section id="how-it-works" class="py-24 px-6 relative border-t border-white/[0.04]">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-4 animate-slide-up">
-                Three Steps to <span class="gradient-text">Freedom</span>
+            <h2 class="text-4xl font-extrabold text-center mb-4 tracking-tight">
+                Three Steps to <span class="text-gradient">Freedom</span>
             </h2>
-            <p class="text-slate-400 text-center mb-16 max-w-xl mx-auto">
-                From chaotic brain to organized life in under 30 seconds.
+            <p class="text-gray-400 text-center mb-16 max-w-xl mx-auto">
+                From chaotic brain dump to organized schedule in under 30 seconds.
             </p>
 
             <div class="grid md:grid-cols-3 gap-8">
                 <!-- Step 1 -->
-                <div class="glass-card text-center animate-slide-up delay-1">
-                    <div class="w-16 h-16 rounded-2xl bg-indigo-500/15 flex items-center justify-center text-3xl mx-auto mb-4">
+                <div class="glass-card text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-[#7C5CFF]/15 flex items-center justify-center text-3xl mx-auto mb-6 border border-[#7C5CFF]/20 shadow-[0_0_15px_rgba(124,92,255,0.15)]">
                         🧠
                     </div>
-                    <div class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">Step 1</div>
-                    <h3 class="text-xl font-bold mb-2">Brain Dump</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">
-                        Type or speak everything on your mind. Messy is fine. AI understands chaos.
+                    <div class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-2">Step 1</div>
+                    <h3 class="text-xl font-bold mb-3">Brain Dump</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Type or speak everything on your mind. Messy, raw, unstructured notes are fine. AI understands the chaos.
                     </p>
                 </div>
 
                 <!-- Step 2 -->
-                <div class="glass-card text-center animate-slide-up delay-2">
-                    <div class="w-16 h-16 rounded-2xl bg-purple-500/15 flex items-center justify-center text-3xl mx-auto mb-4">
+                <div class="glass-card text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-[#3B82F6]/15 flex items-center justify-center text-3xl mx-auto mb-6 border border-[#3B82F6]/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
                         ⚡
                     </div>
-                    <div class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">Step 2</div>
-                    <h3 class="text-xl font-bold mb-2">AI Plans</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">
-                        10 AI tools extract tasks, score priorities, build schedules, and detect conflicts.
+                    <div class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Step 2</div>
+                    <h3 class="text-xl font-bold mb-3">AI Plan</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        10 smart AI tools analyze your input, estimate hours, detect calendar conflicts, and score priorities.
                     </p>
                 </div>
 
                 <!-- Step 3 -->
-                <div class="glass-card text-center animate-slide-up delay-3">
-                    <div class="w-16 h-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center text-3xl mx-auto mb-4">
+                <div class="glass-card text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-[#10B981]/15 flex items-center justify-center text-3xl mx-auto mb-6 border border-[#10B981]/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
                         ✅
                     </div>
-                    <div class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">Step 3</div>
-                    <h3 class="text-xl font-bold mb-2">Execute</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">
-                        Follow your personalized plan. Complete tasks. Build streaks. Crush deadlines.
+                    <div class="text-xs font-bold text-green-400 uppercase tracking-widest mb-2">Step 3</div>
+                    <h3 class="text-xl font-bold mb-3">Execute</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Follow your customized timeline. Tick off tasks, see your daily streaks build, and live with total peace of mind.
                     </p>
                 </div>
             </div>
@@ -129,104 +185,107 @@
     </section>
 
     <!-- Features Grid -->
-    <section id="features" class="py-24 px-6 bg-[#0d0d17]">
+    <section id="features" class="py-24 px-6 bg-[#0B0B14] relative border-t border-white/[0.04]">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-4">
-                Powered by <span class="gradient-text">Real AI</span>
+            <h2 class="text-4xl font-extrabold text-center mb-4 tracking-tight">
+                Powered by <span class="text-gradient">Real AI</span>
             </h2>
-            <p class="text-slate-400 text-center mb-16 max-w-xl mx-auto">
-                Not a chatbot. An autonomous decision engine that thinks for you.
+            <p class="text-gray-400 text-center mb-16 max-w-xl mx-auto">
+                Not a simple chat template. A multi-agent life scheduler that solves problems.
             </p>
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Feature 1 -->
-                <div class="feature-card animate-slide-up delay-1">
-                    <div class="feature-icon bg-indigo-500/15">🧠</div>
-                    <h3 class="font-bold mb-2">Brain Dump NLP</h3>
-                    <p class="text-sm text-slate-400">Type chaos → Get structured tasks with deadlines, categories, and urgency scores. Powered by spaCy NLP.</p>
+                <div class="glass-card">
+                    <div class="w-12 h-12 rounded-xl bg-[#7C5CFF]/15 flex items-center justify-center text-xl mb-4 border border-[#7C5CFF]/20">🧠</div>
+                    <h3 class="text-lg font-bold mb-2">Brain Dump NLP</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Type chaos → Get structured tasks with auto-extracted deadlines, categories, and priority scores.</p>
                 </div>
 
                 <!-- Feature 2 -->
-                <div class="feature-card animate-slide-up delay-2">
-                    <div class="feature-icon bg-purple-500/15">📊</div>
-                    <h3 class="font-bold mb-2">ML Priority Scoring</h3>
-                    <p class="text-sm text-slate-400">scikit-learn model analyzes 8 factors per task. Not just deadline sorting — real contextual intelligence.</p>
+                <div class="glass-card">
+                    <div class="w-12 h-12 rounded-xl bg-[#A855F7]/15 flex items-center justify-center text-xl mb-4 border border-[#A855F7]/20">📊</div>
+                    <h3 class="text-lg font-bold mb-2">Priority Models</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Scikit-learn model evaluates 8 distinct context factors to rank task urgency. True decision intelligence.</p>
                 </div>
 
                 <!-- Feature 3 -->
-                <div class="feature-card animate-slide-up delay-3">
-                    <div class="feature-icon bg-red-500/15">🚨</div>
-                    <h3 class="font-bold mb-2">Crisis Mode</h3>
-                    <p class="text-sm text-slate-400">Last minute emergency? Get a step-by-step survival battle plan with AI assistance at every step.</p>
+                <div class="glass-card">
+                    <div class="w-12 h-12 rounded-xl bg-[#EF4444]/15 flex items-center justify-center text-xl mb-4 border border-[#EF4444]/20">🚨</div>
+                    <h3 class="text-lg font-bold mb-2">Crisis Mode</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Facing a strict, last-minute deadline? Activate Crisis Mode for step-by-step survival assistance.</p>
                 </div>
 
                 <!-- Feature 4 -->
-                <div class="feature-card animate-slide-up delay-4">
-                    <div class="feature-icon bg-amber-500/15">🎭</div>
-                    <h3 class="font-bold mb-2">Mood-Aware Planning</h3>
-                    <p class="text-sm text-slate-400">Tired? Stressed? Energized? Your schedule dynamically restructures based on your current energy.</p>
+                <div class="glass-card">
+                    <div class="w-12 h-12 rounded-xl bg-[#F59E0B]/15 flex items-center justify-center text-xl mb-4 border border-[#F59E0B]/20">🎭</div>
+                    <h3 class="text-lg font-bold mb-2">Energy Alignment</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Select your current energy level (Tired, Stressed, Energized) to dynamically adjust your day's layout.</p>
                 </div>
 
                 <!-- Feature 5 -->
-                <div class="feature-card animate-slide-up delay-5">
-                    <div class="feature-icon bg-emerald-500/15">🔍</div>
-                    <h3 class="font-bold mb-2">Procrastination AI</h3>
-                    <p class="text-sm text-slate-400">ML detects your avoidance patterns. Auto-schedules problem tasks during your peak hours.</p>
+                <div class="glass-card">
+                    <div class="w-12 h-12 rounded-xl bg-[#22D3EE]/15 flex items-center justify-center text-xl mb-4 border border-[#22D3EE]/20">⏱</div>
+                    <h3 class="text-lg font-bold mb-2">Procrastination AI</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">ML tracks avoidance patterns. Autonomously shifts troublesome tasks to hours when you are most productive.</p>
                 </div>
 
                 <!-- Feature 6 -->
-                <div class="feature-card animate-slide-up delay-6">
-                    <div class="feature-icon bg-pink-500/15">📈</div>
-                    <h3 class="font-bold mb-2">Weekly Life Review</h3>
-                    <p class="text-sm text-slate-400">Auto-generated Sunday report: productivity score, wins, misses, patterns, and next week's focus.</p>
+                <div class="glass-card">
+                    <div class="w-12 h-12 rounded-xl bg-[#EC4899]/15 flex items-center justify-center text-xl mb-4 border border-[#EC4899]/20">📅</div>
+                    <h3 class="text-lg font-bold mb-2">Weekly Summary Reports</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Generated weekly reviews detailing score totals, procrastination scores, wins, and next-week focuses.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Testimonials -->
-    <section id="testimonials" class="py-24 px-6">
+    <section id="stories" class="py-24 px-6 relative border-t border-white/[0.04]">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-16">
-                Real Students, <span class="gradient-text">Real Results</span>
+            <h2 class="text-4xl font-extrabold text-center mb-16 tracking-tight">
+                Real Students, <span class="text-gradient">Real Results</span>
             </h2>
 
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="testimonial-card animate-slide-up delay-1">
-                    <p class="text-slate-300 text-sm mb-4 leading-relaxed pt-4">
-                        "I had 4 assignments due the same week. LIFEOS not only organized them but scheduled each one during my best study hours. Haven't missed a deadline since."
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="glass-card flex flex-col justify-between" style="min-height: 220px;">
+                    <p class="text-gray-300 text-sm leading-relaxed italic">
+                        "I had 4 major assignments due the same week. LIFEOS organized them and scheduled each one during my peak morning hours. I finished all of them ahead of time."
                     </p>
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-sm">A</div>
+                    <div class="flex items-center gap-3 mt-6 pt-4 border-t border-white/[0.06]">
+                        <div class="w-9 h-9 rounded-full bg-[#7C5CFF]/20 flex items-center justify-center font-bold text-sm text-[#A5B4FC]">AK</div>
                         <div>
-                            <div class="text-sm font-semibold">Arjun K.</div>
-                            <div class="text-xs text-slate-500">CS Student, VIT</div>
+                            <div class="text-sm font-semibold text-white">Arjun K.</div>
+                            <div class="text-xs text-gray-500 font-medium">CS Student, VIT</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="testimonial-card animate-slide-up delay-2">
-                    <p class="text-slate-300 text-sm mb-4 leading-relaxed pt-4">
-                        "Crisis Mode literally saved my project report. 90 minutes left, hadn't started. LIFEOS gave me a 6-step battle plan and I submitted on time."
+                <!-- Card 2 -->
+                <div class="glass-card flex flex-col justify-between" style="min-height: 220px;">
+                    <p class="text-gray-300 text-sm leading-relaxed italic">
+                        "Crisis Mode saved my project grade. With only 90 minutes remaining and zero progress made, the battle plan walked me through submission step by step."
                     </p>
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-sm">P</div>
+                    <div class="flex items-center gap-3 mt-6 pt-4 border-t border-white/[0.06]">
+                        <div class="w-9 h-9 rounded-full bg-[#EC4899]/20 flex items-center justify-center font-bold text-sm text-pink-300">PM</div>
                         <div>
-                            <div class="text-sm font-semibold">Priya M.</div>
-                            <div class="text-xs text-slate-500">ECE Student, SRM</div>
+                            <div class="text-sm font-semibold text-white">Priya M.</div>
+                            <div class="text-xs text-gray-500 font-medium">ECE Student, SRM</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="testimonial-card animate-slide-up delay-3">
-                    <p class="text-slate-300 text-sm mb-4 leading-relaxed pt-4">
-                        "The procrastination tracker caught me avoiding interview prep. It auto-scheduled 15-min daily sessions. I got the TCS offer."
+                <!-- Card 3 -->
+                <div class="glass-card flex flex-col justify-between" style="min-height: 220px;">
+                    <p class="text-gray-300 text-sm leading-relaxed italic">
+                        "The procrastination tracker caught me ignoring my portfolio. It scheduled tiny 15-minute daily slots. Weeks later, I secured a top internship."
                     </p>
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-sm">R</div>
+                    <div class="flex items-center gap-3 mt-6 pt-4 border-t border-white/[0.06]">
+                        <div class="w-9 h-9 rounded-full bg-[#10B981]/20 flex items-center justify-center font-bold text-sm text-green-300">RS</div>
                         <div>
-                            <div class="text-sm font-semibold">Rahul S.</div>
-                            <div class="text-xs text-slate-500">IT Student, Anna University</div>
+                            <div class="text-sm font-semibold text-white">Rahul S.</div>
+                            <div class="text-xs text-gray-500 font-medium">IT Student, Anna University</div>
                         </div>
                     </div>
                 </div>
@@ -235,32 +294,121 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="py-24 px-6 bg-gradient-to-b from-[#0d0d17] to-[#0F0F1A]">
-        <div class="max-w-2xl mx-auto text-center">
-            <h2 class="text-3xl font-bold mb-4">Ready to <span class="gradient-text">Own Your Time</span>?</h2>
-            <p class="text-slate-400 mb-8">Stop drowning in deadlines. Start every day with a plan that actually works.</p>
-            <a href="login.html" class="btn-primary text-lg px-10 py-4 animate-glow">
+    <section class="py-24 px-6 bg-gradient-to-b from-[#0B0B14] to-[#09090F] relative border-t border-white/[0.04]">
+        <div class="max-w-3xl mx-auto text-center space-y-6">
+            <h2 class="text-4xl font-extrabold tracking-tight">Ready to <span class="text-gradient">Own Your Time</span>?</h2>
+            <p class="text-gray-400 max-w-md mx-auto text-base">Stop struggling with calendar apps. Let AI schedule and optimize your life autonomously.</p>
+            <a href="login.html" class="btn-primary text-lg" style="box-shadow: 0 0 30px rgba(124,92,255,0.45); padding: 16px 40px; margin-top: 12px;">
                 🧠 Start Brain Dump — It's Free
             </a>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="border-t border-[#2D2D4E] py-8 px-6">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-2">
-                <span>🧠</span>
-                <span class="font-bold text-slate-300">LIFEOS</span>
-                <span class="text-slate-500 text-sm">— The Last-Minute Life Saver</span>
+    <footer class="border-t border-white/[0.06] py-12 px-6 bg-[#09090F]">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">🧠</span>
+                <span class="font-extrabold text-slate-300">LIFEOS</span>
+                <span class="text-gray-500 text-sm">— Your AI Chief of Staff</span>
             </div>
-            <div class="flex items-center gap-6 text-sm text-slate-500">
-                <a href="dashboard.html" class="hover:text-slate-300 transition-colors">Dashboard</a>
-                <a href="insights.html" class="hover:text-slate-300 transition-colors">Insights</a>
-                <a href="https://github.com" target="_blank" class="hover:text-slate-300 transition-colors">GitHub</a>
+            <div class="flex items-center gap-8 text-sm text-gray-400 font-medium">
+                <a href="dashboard.html" class="hover:text-white transition-colors">Dashboard</a>
+                <a href="insights.html" class="hover:text-white transition-colors">Insights</a>
+                <a href="https://github.com" target="_blank" class="hover:text-white transition-colors">GitHub</a>
                 <span>VIBE2SHIP 2026</span>
             </div>
         </div>
     </footer>
 
+    <!-- Interactive Wireframe Neural Brain Logic -->
+    <script>
+        const canvas = document.getElementById('brainCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let points = [];
+        const maxPoints = 55;
+        const connectionDistance = 80;
+
+        // Initialize particles in brain shape silhouette
+        function initBrain() {
+            points = [];
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            for (let i = 0; i < maxPoints; i++) {
+                // Generate points roughly conforming to brain hemispheric profile
+                const angle = Math.random() * Math.PI * 2;
+                const r = 80 + Math.random() * 90;
+                
+                // Distort circle into brain lobes
+                let dx = Math.cos(angle) * r;
+                let dy = Math.sin(angle) * r * 0.85;
+
+                // Adjust to make it look like brain hemispheres
+                if (dx > 0) dx += 10;
+                else dx -= 10;
+
+                points.push({
+                    x: centerX + dx,
+                    y: centerY + dy,
+                    originX: centerX + dx,
+                    originY: centerY + dy,
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: (Math.random() - 0.5) * 0.4,
+                    radius: 1.5 + Math.random() * 2
+                });
+            }
+        }
+
+        function drawBrain() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Connect nodes
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < points.length; i++) {
+                for (let j = i + 1; j < points.length; j++) {
+                    const dist = Math.hypot(points[i].x - points[j].x, points[i].y - points[j].y);
+                    if (dist < connectionDistance) {
+                        const alpha = (1 - dist / connectionDistance) * 0.15;
+                        ctx.strokeStyle = `rgba(124, 92, 255, ${alpha})`;
+                        ctx.beginPath();
+                        ctx.moveTo(points[i].x, points[i].y);
+                        ctx.lineTo(points[j].x, points[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Draw glowing node circles
+            for (let i = 0; i < points.length; i++) {
+                const p = points[i];
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Limit movement range from origin to preserve brain shape
+                const distToOrigin = Math.hypot(p.x - p.originX, p.y - p.originY);
+                if (distToOrigin > 15) {
+                    p.vx = -p.vx;
+                    p.vy = -p.vy;
+                }
+
+                ctx.fillStyle = i % 5 === 0 ? 'rgba(34, 211, 238, 0.7)' : 'rgba(124, 92, 255, 0.7)';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            requestAnimationFrame(drawBrain);
+        }
+
+        // Adjust dimensions to fit screen size on load
+        window.addEventListener('resize', () => {
+            // Keep at 500x500
+        });
+
+        initBrain();
+        drawBrain();
+    </script>
 </body>
 </html>

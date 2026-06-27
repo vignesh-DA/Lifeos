@@ -54,6 +54,60 @@ def _verify_session_token(token: str) -> dict | None:
         return None
 
 
+@router.get("/auth/mock")
+async def mock_login(request: Request):
+    """Log in with a mock user for development testing and validation."""
+    user_info = {
+        "email": "mockuser@example.com",
+        "name": "Alex Mercer",
+        "picture": "https://ui-avatars.com/api/?name=Alex+Mercer&background=7C5CFF&color=fff",
+        "sub": "mock_google_id_12345",
+    }
+    session_token = _make_session_token(user_info)
+    
+    try:
+        from db.mongodb import get_db
+        db = get_db()
+        users_col = db["users"]
+        await users_col.update_one(
+            {"google_id": "mock_google_id_12345"},
+            {"$set": {
+                "email": "mockuser@example.com",
+                "name": "Alex Mercer",
+                "google_id": "mock_google_id_12345",
+                "last_login": time.time(),
+                "picture": "https://ui-avatars.com/api/?name=Alex+Mercer&background=7C5CFF&color=fff",
+                "google_tokens": {
+                    "access_token": "mock_access_token",
+                    "expires_at": time.time() + 3600,
+                    "scopes": [
+                        "openid", "email", "profile",
+                        "https://www.googleapis.com/auth/calendar.events",
+                        "https://www.googleapis.com/auth/gmail.compose"
+                    ],
+                }
+            }, "$setOnInsert": {
+                "created_at": time.time(),
+                "streak_days": 5,
+                "best_streak": 12,
+                "productivity_score": 82.0,
+            }},
+            upsert=True,
+        )
+    except Exception as db_err:
+        print(f"Mock login DB update failed: {db_err}")
+
+    response = RedirectResponse("/dashboard.html")
+    response.set_cookie(
+        "lifeos_session",
+        session_token,
+        httponly=True,
+        max_age=86400,
+        samesite="lax",
+    )
+    return response
+
+
 @router.get("/auth/login")
 async def login(request: Request, scope: Optional[str] = None, redirect_url: Optional[str] = None):
     """Redirect user to Google OAuth consent page."""
