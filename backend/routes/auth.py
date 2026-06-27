@@ -204,8 +204,11 @@ async def auth_callback(request: Request):
                 except Exception as img_err:
                     print(f"  ⚠️  Failed to download user avatar: {img_err}")
 
-        # Parse token scopes and expiration
-        granted_scopes = token_data.get("scope", "").split(" ")
+            # Fetch exact scopes from tokeninfo to be 100% accurate
+            tokeninfo_res = await client.get(f"https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={token_data['access_token']}")
+            tokeninfo_data = tokeninfo_res.json()
+            granted_scopes = tokeninfo_data.get("scope", "").split(" ")
+            
         expires_in = token_data.get("expires_in", 3600)
         expires_at = int(time.time()) + expires_in
 
@@ -231,15 +234,12 @@ async def auth_callback(request: Request):
             # Find existing user first to merge google_tokens
             existing_user = await users_col.find_one({"google_id": google_id})
             
-            # Merge scopes and refresh token if exists
+            # Keep old refresh_token if new one is missing
             if existing_user and "google_tokens" in existing_user:
                 old_tokens = existing_user["google_tokens"]
-                # Keep old refresh_token if new one is missing
                 if "refresh_token" not in google_tokens and "refresh_token" in old_tokens:
                     google_tokens["refresh_token"] = old_tokens["refresh_token"]
-                # Merge scopes
-                merged_scopes = list(set(old_tokens.get("scopes", []) + granted_scopes))
-                google_tokens["scopes"] = merged_scopes
+                # We no longer merge scopes here. The new token's exact scopes (via tokeninfo) are what's valid.
 
             set_dict = {
                 "email": user_info.get("email") or (existing_user.get("email") if existing_user else ""),

@@ -472,12 +472,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // Auto load user profile for sidebar
     fetch('/auth/me').then(r => r.json()).then(data => {
         if (data.user) {
-            const photoEl = document.getElementById('sidebarUserPhoto');
-            const nameEl = document.getElementById('sidebarUserName');
-            const emailEl = document.getElementById('sidebarUserEmail');
+            const photoEl = document.getElementById('sidebarUserPhoto') || document.getElementById('userPhoto');
+            const nameEl = document.getElementById('sidebarUserName') || document.getElementById('userName');
+            const emailEl = document.getElementById('sidebarUserEmail') || document.getElementById('userEmail');
             if (photoEl) photoEl.src = data.user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name || 'User')}&background=7C5CFF&color=fff`;
             if (nameEl) nameEl.textContent = data.user.name || 'User';
             if (emailEl) emailEl.textContent = data.user.email || '';
+
+            // Connection Status update for all sidebars
+            if (data.user.calendar_connected) {
+                const calPill = document.getElementById('calendarStatusPill');
+                if (calPill) {
+                    calPill.classList.replace('bg-slate-800', 'bg-indigo-900/40');
+                    calPill.classList.replace('border-slate-700', 'border-indigo-500/30');
+                    const calText = calPill.querySelector('.status-text');
+                    if (calText) {
+                        calText.textContent = 'Connected';
+                        calText.className = 'status-text text-indigo-400 font-medium';
+                    }
+                }
+            }
+            if (data.user.gmail_connected) {
+                const gmailPill = document.getElementById('gmailStatusPill');
+                if (gmailPill) {
+                    gmailPill.classList.replace('bg-slate-800', 'bg-red-900/40');
+                    gmailPill.classList.replace('border-slate-700', 'border-red-500/30');
+                    const gmailText = gmailPill.querySelector('.status-text');
+                    if (gmailText) {
+                        gmailText.textContent = 'Connected';
+                        gmailText.className = 'status-text text-red-400 font-medium';
+                    }
+                }
+            }
         }
     }).catch(() => {});
 });

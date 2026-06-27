@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=6">
+    <link rel="stylesheet" href="css/styles.css?v=7">
 </head>
 <body class="bg-[#09090F] text-white min-h-screen">
 
@@ -80,11 +80,21 @@
                         <div id="sidebarUserEmail" class="user-email">email@domain.com</div>
                     </div>
                 </div>
-                <!-- Custom Dropdown Menu for Logout -->
+                <!-- Custom Dropdown Menu for Logout & Connections -->
                 <div id="userMenu" style="display:none; position:absolute; bottom:calc(100% + 8px); left:16px; right:16px;
                      background: rgba(18,19,37,0.98); border:1px solid var(--border-default); border-radius:16px;
                      padding:1rem; box-shadow: 0 16px 40px rgba(0,0,0,0.5); z-index:100;
                      backdrop-filter: blur(20px);">
+                    <!-- Connection Status -->
+                    <div id="connectionStatus" class="space-y-2 mb-4">
+                        <div id="calendarStatusPill" class="text-xs px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                            📅 Calendar: <span class="status-text text-slate-500">Disconnected</span>
+                        </div>
+                        <div id="gmailStatusPill" class="text-xs px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                            ✉️ Gmail: <span class="status-text text-slate-500">Disconnected</span>
+                        </div>
+                    </div>
+
                     <a href="/auth/logout"
                        style="display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1rem;border-radius:12px;
                               background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);
@@ -267,7 +277,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/app.js?v=3"></script>
+    <script src="js/app.js?v=4"></script>
     <script src="js/charts.js?v=3"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
