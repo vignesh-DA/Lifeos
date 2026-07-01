@@ -309,10 +309,17 @@ async def delete_calendar_event(user_id: str, event_id: str) -> bool:
 async def create_gmail_draft(user_id: str, to: str, subject: str, body: str) -> dict | None:
     """
     Create a compose draft in user's Gmail drafts folder.
+    Returns the draft dict on success, or None if auth is missing/broken
+    or the API call fails — never raises, so callers can always check the
+    return value without needing their own try/except for auth errors.
     """
     scope = "https://www.googleapis.com/auth/gmail.compose"
-    token = await get_google_access_token(user_id, scope)
-    if not token:
+    try:
+        token = await get_google_access_token(user_id, scope)
+    except GoogleAuthError as e:
+        # Auth missing or expired — log clearly and return None so the
+        # caller (scheduler) can continue to the next user instead of crashing.
+        print(f"  🔒 Gmail auth unavailable for user '{user_id}': {e}")
         return None
 
     # Construct clean MIME message string
@@ -325,7 +332,7 @@ async def create_gmail_draft(user_id: str, to: str, subject: str, body: str) -> 
     if "@" in to:
         mime_parts.insert(0, f"To: {to}")
     mime_message = "\n".join(mime_parts)
-    
+
     # Base64url encode the MIME payload (remove padding, swap chars)
     raw_bytes = base64.urlsafe_b64encode(mime_message.encode("utf-8"))
     raw_str = raw_bytes.decode("utf-8").replace("=", "")
@@ -348,13 +355,13 @@ async def create_gmail_draft(user_id: str, to: str, subject: str, body: str) -> 
                 timeout=10.0
             )
 
-            if res.status_code in [200, 201]:
-                draft_data = res.json()
-                print(f"  ✉️  Gmail draft successfully created: {draft_data.get('id')}")
-                return draft_data
-            else:
-                print(f"  ❌ Failed to create Gmail draft: {res.status_code} - {res.text}")
-                return None
+        if res.status_code in (200, 201):
+            draft_data = res.json()
+            print(f"  ✉️  Gmail draft successfully created: {draft_data.get('id')}")
+            return draft_data
+        else:
+            print(f"  ❌ Failed to create Gmail draft: {res.status_code} - {res.text}")
+            return None
 
     except Exception as e:
         print(f"  ❌ Error calling Gmail API: {e}")

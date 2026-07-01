@@ -81,6 +81,8 @@ async def send_morning_briefings():
     """
     Daily morning briefing at 8:00 AM.
     Drafts a morning briefing email via Gmail for each connected user.
+    Each user is processed in its own try/except so a single broken auth
+    or transient error never skips all remaining users in the cursor.
     """
     print("🌅 Generating morning briefings...")
     try:
@@ -96,63 +98,70 @@ async def send_morning_briefings():
             if not user_id:
                 continue
 
-            # Fetch user details
-            name = user.get("name", "User")
-            email = user.get("email")
-            streak = user.get("streak_days", 0)
-            
-            # Fetch today's tasks
-            tasks_cursor = tasks_collection().find({
-                "user_id": user_id,
-                "status": {"$in": ["pending", "overdue"]}
-            })
-            
-            today_tasks = []
-            async for task in tasks_cursor:
-                # If overdue or has a deadline today
-                dl = task.get("deadline")
-                if task.get("status") == "overdue":
-                    today_tasks.append(task)
-                elif dl:
-                    try:
-                        dl_dt = datetime.fromisoformat(dl.replace("Z", "+00:00"))
-                        if today_start <= dl_dt < today_end:
-                            today_tasks.append(task)
-                    except Exception:
-                        pass
+            # ── Per-user isolation: errors here must not kill the whole loop ──
+            try:
+                name   = user.get("name", "User")
+                email  = user.get("email")
+                streak = user.get("streak_days", 0)
 
-            if not today_tasks:
+                # Fetch today's tasks
+                tasks_cursor = tasks_collection().find({
+                    "user_id": user_id,
+                    "status": {"$in": ["pending", "overdue"]}
+                })
+
+                today_tasks = []
+                async for task in tasks_cursor:
+                    dl = task.get("deadline")
+                    if task.get("status") == "overdue":
+                        today_tasks.append(task)
+                    elif dl:
+                        try:
+                            dl_dt = datetime.fromisoformat(dl.replace("Z", "+00:00"))
+                            if today_start <= dl_dt < today_end:
+                                today_tasks.append(task)
+                        except Exception:
+                            pass
+
+                if not today_tasks:
+                    continue
+
+                # Build morning briefing text
+                task_list_str = ""
+                for idx, task in enumerate(today_tasks, 1):
+                    prio = task.get("priority_score", 5.0)
+                    status_emoji = "🚨" if task.get("status") == "overdue" else "⏰"
+                    task_list_str += f"{idx}. {status_emoji} {task.get('title')} [{task.get('category', 'personal')}] - Priority: {prio}/10\n"
+
+                body  = f"Good morning, {name.split()[0]}!\n\n"
+                body += f"Here is your morning briefing from LIFEOS for today, {now.strftime('%A, %b %d')}.\n\n"
+                body += f"🔥 Current streak: {streak} days\n\n"
+                body += "Here are the tasks you need to focus on today:\n"
+                body += task_list_str
+                body += "\nLet's get after it today! Make it count.\n\nBest,\nLIFEOS AI"
+
+                # create_gmail_draft catches GoogleAuthError internally and returns None
+                # so no separate auth catch needed here — just check the return value.
+                print(f"  ✉️ Creating morning briefing draft for {name} ({email or user_id})...")
+                draft = await create_gmail_draft(
+                    user_id=user_id,
+                    to=email or "",
+                    subject=f"🌅 Your Morning Briefing — {now.strftime('%b %d')}",
+                    body=body
+                )
+                if draft:
+                    print(f"  ✅ Draft created for user {user_id}")
+                else:
+                    print(f"  ⚠️ Could not create Gmail draft for user {user_id} (auth missing or Gmail API error).")
+
+            except Exception as user_err:
+                # Unexpected per-user failure — log and continue to the next user
+                print(f"  ❌ Morning briefing failed for user '{user_id}': {user_err}")
                 continue
-
-            # Build a beautiful, encouraging text briefing
-            task_list_str = ""
-            for idx, task in enumerate(today_tasks, 1):
-                prio = task.get("priority_score", 5.0)
-                status_emoji = "🚨" if task.get("status") == "overdue" else "⏰"
-                task_list_str += f"{idx}. {status_emoji} {task.get('title')} [{task.get('category', 'personal')}] - Priority: {prio}/10\n"
-
-            body = f"Good morning, {name.split()[0]}!\n\n"
-            body += f"Here is your morning briefing from LIFEOS for today, {now.strftime('%A, %b %d')}.\n\n"
-            body += f"🔥 Current streak: {streak} days\n\n"
-            body += "Here are the tasks you need to focus on today:\n"
-            body += task_list_str
-            body += "\nLet's get after it today! Make it count.\n\nBest,\nLIFEOS AI"
-
-            # Create a Gmail draft
-            print(f"  ✉️ Creating morning briefing draft for {name} ({email or user_id})...")
-            draft = await create_gmail_draft(
-                user_id=user_id,
-                to=email or "",
-                subject=f"🌅 Your Morning Briefing — {now.strftime('%b %d')}",
-                body=body
-            )
-            if draft:
-                print(f"  ✅ Draft created for user {user_id}")
-            else:
-                print(f"  ⚠️ Could not create Gmail draft for user {user_id} (Gmail connection or permissions missing).")
 
     except Exception as e:
         print(f"  ❌ Error in send_morning_briefings: {e}")
+
 
 
 async def generate_weekly_reviews():
