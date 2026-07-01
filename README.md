@@ -1,193 +1,347 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/vignesh-DA/Lifeos/main/frontend/assets/logo.png" alt="LIFEOS Logo" width="120" style="border-radius: 20px; box-shadow: 0 0 20px rgba(124, 92, 255, 0.5); margin-bottom: 20px;" onerror="this.src='https://ui-avatars.com/api/?name=L+O&background=7C5CFF&color=fff&size=120'"/>
-  
+  <img src="https://raw.githubusercontent.com/vignesh-DA/Lifeos/main/frontend/assets/logo.png" alt="LIFEOS Logo" width="140" style="border-radius: 20px; box-shadow: 0 0 20px rgba(124, 92, 255, 0.5); margin-bottom: 20px;" onerror="this.src='https://ui-avatars.com/api/?name=L+O&background=7C5CFF&color=fff&size=140'"/>
+
   # LIFEOS
-  **The Autonomous AI Life Operating System**
-  
+  ### The Autonomous AI Life Operating System
+
   *Don't manage your time. Let AI own it.*
+
+  <br/>
 
   [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
   [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-00a393.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
   [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248.svg?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+  [![Vercel](https://img.shields.io/badge/Vercel-Deployed-black.svg?style=for-the-badge&logo=vercel&logoColor=white)](https://lifeos-ebon-kappa.vercel.app)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+  [![Hackathon](https://img.shields.io/badge/VIBE2SHIP-2026-7C5CFF.svg?style=for-the-badge)](https://lifeos-ebon-kappa.vercel.app)
 
-  [**Live Demo**](#) • [**Watch Video**](https://drive.google.com/file/d/1_tRE6_nGyi7nFPi_feL6FDSFF9dzdH0q/view?usp=sharing)
+  <br/>
+
+  [**🌐 Live App**](https://lifeos-ebon-kappa.vercel.app) &nbsp;•&nbsp; [**🎬 Watch Demo**](https://drive.google.com/file/d/1_tRE6_nGyi7nFPi_feL6FDSFF9dzdH0q/view?usp=sharing) &nbsp;•&nbsp; [**⭐ Star this repo**](https://github.com/vignesh-DA/Lifeos)
+
+  <br/>
+
+  > 🏆 Built for the **VIBE2SHIP Hackathon 2026** — *Because your time is too valuable to manage manually.*
 
 </div>
 
 ---
 
-## 🎯 What Does LIFEOS Do?
+## 🧠 What is LIFEOS?
 
-**LIFEOS** is an intelligent, autonomous decision engine disguised as a productivity tool. It is built for people with chaotic minds who are overwhelmed by traditional to-do lists. 
+**LIFEOS** is not another to-do app. It is an **intelligent, autonomous decision engine** built for people with chaotic minds who are overwhelmed by traditional productivity tools.
 
-Instead of manually organizing your life, you simply **"brain dump"** your unstructured thoughts, and LIFEOS handles the rest.
+You don't organize tasks. You **brain dump** — and LIFEOS thinks, prioritizes, schedules, and notifies you automatically.
 
-### ⚙️ Core App Functionality & Workflows
+```
+You type:  "need to pay rent friday, finish physics essay tmrw, dentist appt sometime"
+LIFEOS:    ✅ 3 tasks extracted → categorized → scored → scheduled → pushed to your Google Calendar
+```
 
-1. 🧠 **The Brain Dump (Input Chaos)**
-   - Type or speak your messy, unstructured thoughts into the app (e.g., *"I need to pay rent by Friday, finish my physics essay tomorrow, and oh, schedule a dentist appointment."*).
-   - Our **NLP Engine (spaCy)** instantly parses the text, extracts actionable entities, isolates deadlines, and categorizes them (Work, Academic, Personal, Health).
+---
 
-2. ⚡ **Autonomous AI Processing**
-   - The **LangChain Agent** takes over. Armed with 10 specialized tools, it thinks, decides, and acts on your behalf.
-   - It breaks down massive, overwhelming projects into bite-sized, 15-minute actionable steps so you know exactly where to start.
+## ✨ Core Features
 
-3. 📊 **Machine Learning Priority Engine**
-   - Not all deadlines are created equal. A custom **scikit-learn ML model** scores every single task across 8 critical dimensions (urgency, stress level, time required, etc.) to determine its *true* priority.
-   - It automatically builds an optimal schedule based on your current mood and energy levels.
+### 🧠 1. Brain Dump Engine
+- Type or speak messy, unstructured thoughts — no formatting required
+- **spaCy NLP** instantly extracts actionable tasks, deadlines, and categories
+- Supports voice input for completely hands-free capture
 
-4. 🗓️ **Interactive Smart Calendar & Dashboard**
-   - The AI automatically plots your tasks onto a beautiful, visual **FullCalendar** interface.
-   - Simply drag and drop tasks to reschedule them. The UI provides a high-level overview of your streak, productivity score, and daily focus.
+### ⚡ 2. Autonomous AI Agent
+- A **LangChain Agent** armed with 10 specialized tools thinks and acts on your behalf
+- Breaks overwhelming projects into **15-minute actionable steps**
+- Powered by **Groq (Llama 3.1 70B)** for near-instant inference — zero waiting
 
-5. 🚨 **Emergency "Crisis Mode"**
-   - Completely overwhelmed? Hit the **Crisis Button**. The entire app interface shifts to a focused, distraction-free red theme.
-   - The AI generates an immediate, step-by-step survival battle plan to get you through last-minute emergencies and even drafts deadline extension emails for you.
+### 📊 3. ML Priority Engine
+- A custom **scikit-learn model** scores every task across **8 dimensions**: urgency, stress level, estimated time, category weight, deadline proximity, postpone history, mood, and energy
+- Builds an optimal daily schedule that adapts to how you actually feel
 
-6. 📈 **Procrastination Tracking & Weekly Reviews**
-   - LIFEOS silently monitors your habits. It detects which tasks you chronically postpone and predicts avoidance patterns.
-   - Every Sunday, it generates an **Automated Weekly Review** with data-driven insights and AI recommendations to improve your productivity for the next week.
+### 🗓️ 4. Smart Calendar & Google Notifications
+- Tasks auto-sync to your **Google Calendar** with priority-based reminders
+- **Mobile push notifications** fire automatically via the Google Calendar app
+  - 🔴 URGENT: 2-hour + 30-min popup + 15-min email
+  - 🟡 MEDIUM: 1-hour + 15-min popup
+  - 🟢 LOW: 30-min popup
+- Drag-and-drop rescheduling on the FullCalendar interface
+
+### 🚨 5. Crisis Mode
+- Completely overwhelmed? Hit **Crisis Mode** — the UI shifts to a focused red theme
+- AI generates an immediate step-by-step **survival battle plan**
+- Auto-drafts **deadline extension emails** for you — one click to send
+
+### 📈 6. Procrastination Intelligence
+- LIFEOS silently tracks which tasks you chronically delay
+- Predicts your avoidance patterns before they happen
+- Every Sunday: **Automated Weekly Review** with data-driven insights and next-week recommendations
+
+### 🌅 7. Morning Briefings
+- Every day at 8:00 AM, a personalised briefing is drafted to your Gmail
+- Shows today's focus tasks ranked by true priority + your current streak
 
 ---
 
 ## 🏗️ System Architecture
 
-LIFEOS employs a modern, decoupled architecture designed for high availability and rapid AI inference.
-
 ```mermaid
 graph TD
-    subgraph Frontend [Client Tier]
-        UI[Glassmorphism UI]
-        State[Alpine.js / Vanilla JS]
-        Charts[Chart.js Visualizations]
+    subgraph Frontend ["🖥️ Client Tier (Vercel)"]
+        UI["Glassmorphism UI\nHTML5 + CSS3"]
+        State["Alpine.js / Vanilla JS"]
+        Charts["Chart.js Visualizations"]
+        Cal["FullCalendar"]
     end
 
-    subgraph Backend [FastAPI Server]
-        API[RESTful API Gateway]
-        Agent[LangChain Autonomous Agent]
-        NLP[spaCy Entity Extraction]
-        ML[scikit-learn Priority Engine]
+    subgraph Backend ["⚙️ FastAPI Server (Render)"]
+        API["RESTful API Gateway"]
+        Agent["LangChain Autonomous Agent"]
+        NLP["spaCy NLP Engine"]
+        ML["scikit-learn Priority Model"]
+        Sched["APScheduler\nBackground Jobs"]
     end
 
-    subgraph Data [Persistence Tier]
-        Mongo[(MongoDB Atlas)]
+    subgraph Data ["💾 Persistence (MongoDB Atlas)"]
+        Mongo[("Tasks / Users\nReviews / Tokens")]
     end
 
-    subgraph External [AI Providers]
-        Groq[Groq API - Llama 3.1]
-        Gemini[Google Gemini Pro]
+    subgraph Google ["📱 Google Services"]
+        GCal["Google Calendar API\n→ Mobile Push Notifications"]
+        Gmail["Gmail API\n→ Morning Briefings"]
+        OAuth["Google OAuth 2.0"]
     end
 
-    UI <-->|JSON over HTTP| API
+    subgraph AI ["🤖 AI Providers"]
+        Groq["Groq API\nLlama 3.1 70B"]
+        Gemini["Google Gemini Pro"]
+    end
+
+    UI <-->|JSON over HTTPS| API
     API <--> Agent
     Agent <--> NLP
     Agent <--> ML
     API <--> Mongo
+    Sched --> Mongo
+    Sched -->|Auto-sync| GCal
+    Sched -->|Daily briefing| Gmail
     Agent <--> Groq
     Agent <--> Gemini
+    OAuth --> API
 ```
+
+---
 
 ## 🛠️ Technology Stack
 
-| Category | Technologies Used |
-|----------|-------------------|
-| **Frontend** | HTML5, CSS3 (Custom Glassmorphism), Tailwind CSS (Utilities), Alpine.js, Chart.js, FullCalendar |
-| **Backend** | Python 3.11+, FastAPI, Uvicorn, Pydantic |
-| **AI & ML** | LangChain, Groq (Llama 3.1 70B), Google Gemini Pro, spaCy, scikit-learn |
-| **Database** | MongoDB Atlas (Motor Async Driver) |
-| **Deployment** | Docker, Google Cloud Run / Render (Backend), Vercel (Frontend) |
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | HTML5, CSS3 (Glassmorphism), Alpine.js | Reactive, low-friction UI |
+| **Styling** | Tailwind CSS utilities, Chart.js | Data visualizations |
+| **Calendar** | FullCalendar | Drag-and-drop task scheduling |
+| **Backend** | Python 3.11+, FastAPI, Uvicorn | Async API server |
+| **Validation** | Pydantic v2 | Request/response modeling |
+| **AI Agent** | LangChain + Groq (Llama 3.1 70B) | Autonomous task reasoning |
+| **LLM Fallback** | Google Gemini Pro | Crisis mode + weekly reviews |
+| **NLP** | spaCy `en_core_web_sm` | Entity extraction from brain dumps |
+| **ML** | scikit-learn | Priority scoring across 8 dimensions |
+| **Database** | MongoDB Atlas + Motor (async) | Cloud-persistent task storage |
+| **Auth** | Google OAuth 2.0 | Secure login + Google API access |
+| **Notifications** | Google Calendar API | Mobile push via popup reminders |
+| **Email** | Gmail API | Morning briefings as Gmail drafts |
+| **Scheduler** | APScheduler (AsyncIO) | Every-5-min sync, daily/weekly jobs |
+| **Deployment** | Vercel (frontend) + Render (backend) | Production hosting |
+| **Container** | Docker | Portable, reproducible builds |
 
-### 💡 Why This Stack Matters (User Benefits)
-- **Zero-Lag AI (Groq + LangChain):** By leveraging Groq's ultra-fast inference for Llama 3.1, the autonomous agent processes complex life plans in milliseconds. It feels instantaneous, not like waiting for a chatbot.
-- **Seamless ML Integration (FastAPI + Python):** Python allows us to run custom machine learning (scikit-learn) and NLP (spaCy) in the same highly-performant, asynchronous backend, giving you enterprise-grade analytics on your personal habits.
-- **Calming, Low-Friction UI (Tailwind + Alpine.js):** The interface is deliberately designed with Glassmorphism and dark mode to reduce cognitive overload and anxiety when you are stressed.
-- **Reliable Data Sync (MongoDB Atlas):** Your tasks, procrastination history, and AI insights are securely stored in a scalable cloud database, ensuring you never lose a critical deadline.
+### 💡 Why This Stack?
+
+- **Zero-Lag AI (Groq + LangChain):** Groq's hardware-accelerated inference processes complex life plans in milliseconds — feels instant, not like a chatbot
+- **Real Push Notifications (Google Calendar API):** Events are created server-side with explicit `popup` reminders — your phone buzzes at the right time without any extra app
+- **Scalable Async (FastAPI + Motor):** Every DB query and AI call is non-blocking — the server handles hundreds of concurrent users without threading overhead
+- **Reliable Idempotency (MongoDB atomic ops):** The calendar sync uses `find_one_and_update` with a `"pending"` sentinel — concurrent scheduler runs can't create duplicate Google Calendar events
+- **Calming UI (Glassmorphism + Alpine.js):** Dark mode + blur effects deliberately reduce cognitive overload when you're already stressed
 
 ---
 
 ## 🚀 Getting Started
 
-Follow these instructions to deploy a local instance of LIFEOS.
-
 ### Prerequisites
-- Python 3.11 or higher
-- MongoDB Atlas cluster (or local MongoDB instance)
-- API Keys for Groq and Google Gemini
+
+| Requirement | Version |
+|------------|---------|
+| Python | 3.11+ |
+| MongoDB | Atlas cluster (free tier works) |
+| Groq API key | [console.groq.com](https://console.groq.com) |
+| Google Gemini API key | [aistudio.google.com](https://aistudio.google.com) |
+| Google OAuth credentials | [console.cloud.google.com](https://console.cloud.google.com) |
+
+> **Required Google OAuth Scopes:** `calendar.events` + `gmail.compose` — users grant these on first login so mobile push notifications work out of the box.
+
+---
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/vignesh-DA/Lifeos.git
 cd Lifeos
 ```
 
 ### 2. Environment Setup
-Create a virtual environment and install dependencies:
+
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Download the required NLP models:
+Download the NLP model:
+
 ```bash
 python -m spacy download en_core_web_sm
 ```
 
 ### 3. Configuration
-Copy the sample environment file and add your credentials:
+
 ```bash
 cp .env.example .env
 ```
-Update `.env` with your secure keys:
+
+Edit `.env` with your credentials:
+
 ```env
-# Required API Keys
+# ── AI Keys ────────────────────────────────────────────────────
 GEMINI_API_KEY=your_gemini_api_key
 GROQ_API_KEY=your_groq_api_key
 
-# Database
+# ── Database ────────────────────────────────────────────────────
 MONGODB_URI=your_mongodb_connection_string
 DATABASE_NAME=lifeos
 
-# Auth
-SECRET_KEY=your_secure_random_string
+# ── Auth & Google APIs ──────────────────────────────────────────
+SECRET_KEY=your_secure_random_string_min_32_chars
 GOOGLE_CLIENT_ID=your_oauth_client_id
 GOOGLE_CLIENT_SECRET=your_oauth_client_secret
 GOOGLE_REDIRECT_URI=http://localhost:8000/auth/callback
 ```
 
-### 4. Run the Application
-Launch the high-performance FastAPI server:
+### 4. Run Locally
+
 ```bash
 cd backend
 uvicorn main:app --reload --port 8000
 ```
-Navigate to `http://localhost:8000` in your browser. The backend seamlessly serves the static frontend.
+
+Open [`http://localhost:8000`](http://localhost:8000) — the backend serves the frontend statically.
+
+---
+
+## 📱 Mobile Push Notifications — How It Works
+
+LIFEOS creates real **Google Calendar events** with explicit reminder overrides whenever a task is saved. No extra app needed — just the Google Calendar app on your phone.
+
+```
+Task created in LIFEOS
+        ↓
+Backend calls Google Calendar API
+        ↓
+Event created with useDefault: False + explicit popup reminders
+        ↓
+Google pushes to every device signed into that Google account:
+    📱 Android  →  Google Calendar push notification
+    🍎 iPhone   →  Google Calendar push notification
+    🖥️ Desktop  →  Google Calendar popup + email
+```
+
+**Requirements on user's side:**
+1. Log in with Google (grants `calendar.events` scope on first login)
+2. Google Calendar app installed (pre-installed on Android)
+3. Notifications enabled for Google Calendar
 
 ---
 
 ## 🌐 Deployment
 
-LIFEOS is containerized and ready for production deployment.
+LIFEOS is live at **[lifeos-ebon-kappa.vercel.app](https://lifeos-ebon-kappa.vercel.app)** using a split deployment:
 
-**Google Cloud Run (Recommended)**
+### Frontend → Vercel
+
+The `frontend/` directory is deployed directly to Vercel. API calls are proxied via `vercel.json`.
+
+```bash
+# From project root
+vercel --prod
+```
+
+### Backend → Render
+
+```bash
+# Render auto-deploys from GitHub on push to main
+# Build command: pip install -r requirements.txt
+# Start command: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+### Self-hosted → Docker
+
+```bash
+docker build -t lifeos .
+docker run -p 8000:8000 --env-file .env lifeos
+```
+
+### Google Cloud Run
+
 ```bash
 gcloud builds submit --config cloudbuild.yaml
 ```
 
-**Alternative: Render + Vercel**
-- Backend: Deploy directly via Render connecting to your GitHub repo using `requirements.txt`.
-- Frontend: Deploy via Vercel, utilizing the included `vercel.json` for API proxying.
+---
+
+## 📁 Project Structure
+
+```
+Lifeos/
+├── backend/
+│   ├── main.py               # FastAPI app entrypoint
+│   ├── config.py             # Settings & env vars
+│   ├── routes/
+│   │   ├── tasks.py          # Task CRUD + calendar auto-sync
+│   │   ├── agent.py          # LangChain brain dump endpoint
+│   │   ├── auth.py           # Google OAuth + session management
+│   │   ├── crisis.py         # Crisis mode AI planning
+│   │   └── insights.py       # Weekly reviews & analytics
+│   ├── services/
+│   │   └── scheduler.py      # APScheduler background jobs
+│   ├── utils/
+│   │   └── google_api.py     # Calendar & Gmail API helpers
+│   ├── ml/
+│   │   └── priority.py       # scikit-learn priority model
+│   ├── nlp/
+│   │   └── extractor.py      # spaCy NLP pipeline
+│   └── db/
+│       └── mongodb.py        # Motor async MongoDB client
+├── frontend/
+│   ├── index.html            # Landing / brain dump
+│   ├── dashboard.html        # Main productivity dashboard
+│   ├── calendar.html         # FullCalendar view
+│   ├── crisis.html           # Crisis mode interface
+│   ├── insights.html         # Analytics & weekly reviews
+│   ├── js/
+│   │   ├── app.js            # Core app logic
+│   │   ├── calendar.js       # FullCalendar integration
+│   │   └── charts.js         # Chart.js visualizations
+│   └── css/                  # Custom glassmorphism styles
+├── Dockerfile
+├── requirements.txt
+└── .env.example
+```
 
 ---
 
 ## 🛡️ License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
+
+---
 
 ## 🤝 Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions are **greatly appreciated**.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
@@ -196,7 +350,22 @@ Contributions are what make the open source community such an amazing place to l
 5. Open a Pull Request
 
 ---
+
+## 🙌 Acknowledgements
+
+- [Groq](https://groq.com) — ultra-fast LLM inference
+- [LangChain](https://langchain.com) — autonomous agent framework
+- [FullCalendar](https://fullcalendar.io) — interactive calendar UI
+- [MongoDB Atlas](https://www.mongodb.com/atlas) — cloud database
+- [FastAPI](https://fastapi.tiangolo.com) — modern async Python API framework
+
+---
+
 <div align="center">
-  <b>Built with ❤️ for the VIBE2SHIP Hackathon 2026.</b><br>
+  <b>Built with ❤️ for the VIBE2SHIP Hackathon 2026.</b><br/>
   <i>Because your time is too valuable to manage manually.</i>
+  <br/><br/>
+  <a href="https://lifeos-ebon-kappa.vercel.app">
+    <img src="https://img.shields.io/badge/Try%20LIFEOS%20Now-7C5CFF?style=for-the-badge&logo=vercel&logoColor=white" alt="Try LIFEOS"/>
+  </a>
 </div>

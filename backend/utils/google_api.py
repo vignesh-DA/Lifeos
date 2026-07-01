@@ -9,37 +9,48 @@ from config import settings
 from db.mongodb import get_db
 
 
-async def get_google_access_token(user_id: str, required_scope: str) -> str | None:
+class GoogleAuthError(Exception):
+    """Raised when a user's Google OAuth token is missing, expired, or revoked."""
+    pass
+
+
+async def get_google_access_token(user_id: str, required_scope: str) -> str:
     """
     Load user from DB, check if token is valid for required_scope,
     refresh if expired, and return a valid access token.
+
+    Raises GoogleAuthError on every failure path so callers receive a typed
+    exception instead of a silent None — letting them decide what "no token" means.
     """
     db = get_db()
     user = await db["users"].find_one({"google_id": user_id})
     if not user or "google_tokens" not in user:
-        print(f"  ❌ No google_tokens found for user: {user_id}")
-        return None
+        raise GoogleAuthError(f"No google_tokens found for user: {user_id}")
 
     tokens = user["google_tokens"]
     scopes = tokens.get("scopes", [])
-    
+
     # Check if authorized for required scope
     if required_scope not in scopes:
-        print(f"  ❌ Required scope '{required_scope}' not authorized for user: {user_id}")
-        return None
+        raise GoogleAuthError(
+            f"Required scope '{required_scope}' not granted for user: {user_id}. "
+            "User must re-authenticate."
+        )
 
     access_token = tokens.get("access_token")
-    expires_at = tokens.get("expires_at", 0)
+    expires_at   = tokens.get("expires_at", 0)
     refresh_token = tokens.get("refresh_token")
 
-    # If token is still valid (with 60 second margin), return it
+    # Token still valid (60-second margin)
     if access_token and expires_at > time.time() + 60:
         return access_token
 
-    # Token is expired, try to refresh it
+    # Token expired — try refresh
     if not refresh_token:
-        print(f"  ❌ Access token expired and no refresh_token available for user: {user_id}")
-        return None
+        raise GoogleAuthError(
+            f"Access token expired and no refresh_token available for user: {user_id}. "
+            "User must re-authenticate."
+        )
 
     print(f"  🔄 Refreshing Google access token for user: {user_id}...")
     try:
@@ -57,151 +68,208 @@ async def get_google_access_token(user_id: str, required_scope: str) -> str | No
             data = res.json()
 
             if "error" in data:
-                print(f"  ❌ Google token refresh failed: {data}")
-                return None
+                raise GoogleAuthError(
+                    f"Google token refresh failed for user {user_id}: {data.get('error_description', data)}"
+                )
 
             new_access_token = data.get("access_token")
-            expires_in = data.get("expires_in", 3600)
-            new_expires_at = int(time.time()) + expires_in
+            expires_in       = data.get("expires_in", 3600)
+            new_expires_at   = int(time.time()) + expires_in
 
-            # Update DB with new token
             tokens["access_token"] = new_access_token
-            tokens["expires_at"] = new_expires_at
-            
+            tokens["expires_at"]   = new_expires_at
+
             await db["users"].update_one(
                 {"google_id": user_id},
-                {"$set": {"google_tokens": tokens}}
+                {"$set": {"google_tokens": tokens}},
             )
-            print(f"  ✅ Access token successfully refreshed.")
+            print(f"  ✅ Access token successfully refreshed for user: {user_id}")
             return new_access_token
 
+    except GoogleAuthError:
+        raise  # Don't swallow typed auth errors
     except Exception as e:
-        print(f"  ❌ Error refreshing Google access token: {e}")
-        return None
+        raise GoogleAuthError(f"Unexpected error refreshing token for user {user_id}: {e}") from e
 
 
-async def create_calendar_event(user_id: str, task: dict) -> dict | None:
+async def create_calendar_event(user_id: str, task: dict) -> str | None:
     """
     Create a scheduled event on Google Calendar for a task.
-    Includes custom priority-based reminders.
+
+    - Returns the Google Calendar event_id (str) on success.
+    - Returns None if the task has no valid deadline (skip, don't error).
+    - Raises GoogleAuthError if OAuth is broken so the scheduler can log it
+      distinctly and avoid retrying on every 5-minute tick.
+    - Uses find_one_and_update with a 'pending' sentinel for an atomic
+      check-and-set lock: whichever concurrent scheduler run claims the slot
+      first proceeds to the API; the others bail out immediately.
+      On API failure the sentinel is $unset so the next run can retry.
     """
+    from datetime import datetime, timezone, timedelta
+    from db.mongodb import tasks_collection
+    from bson import ObjectId
+
     scope = "https://www.googleapis.com/auth/calendar.events"
-    token = await get_google_access_token(user_id, scope)
-    if not token:
+
+    # ── 1. Validate deadline — skip rather than error on bad/missing values ───
+    deadline_str = task.get("deadline")
+    if not deadline_str or deadline_str in ("unknown", "overdue"):
+        print(f"  ⏭️  Skipping calendar sync for '{task.get('title')}': no valid deadline.")
         return None
 
-    title = task.get("title", "LIFEOS Focus Session")
+    now = datetime.now(timezone.utc)
+    try:
+        dl_dt = datetime.fromisoformat(deadline_str.replace("Z", "+00:00"))
+        if dl_dt.tzinfo is None:
+            dl_dt = dl_dt.replace(tzinfo=timezone.utc)
+    except Exception:
+        print(f"  ⏭️  Skipping calendar sync for '{task.get('title')}': unparseable deadline '{deadline_str}'.")
+        return None
+
+    # Focus block = 4 hours before deadline; if that's already past, 30 min from now
+    target_start = dl_dt - timedelta(hours=4)
+    if target_start < now:
+        target_start = now + timedelta(minutes=30)
+    start_time = target_start
+    end_time   = start_time + timedelta(hours=task.get("estimated_hours", 1.0))
+
+    # ── 2. Atomic check-and-set with a 'pending' sentinel ────────────────────
+    # find_one_and_update is a single atomic op in MongoDB. Only the first
+    # concurrent caller whose filter matches (field absent) will get a doc back;
+    # all other concurrent callers will find the field already set to 'pending'
+    # (or the real id) and return None → they bail out immediately, no duplicate.
+    task_id_raw = task.get("_id")
+    task_oid    = ObjectId(task_id_raw) if isinstance(task_id_raw, str) else task_id_raw
+
+    if task_oid:
+        claimed = await tasks_collection().find_one_and_update(
+            {"_id": task_oid, "google_calendar_event_id": {"$exists": False}},
+            {"$set": {"google_calendar_event_id": "pending"}},
+            return_document=False,  # return the doc BEFORE the update
+        )
+        if claimed is None:
+            # Another run already claimed or completed this task's slot.
+            existing = await tasks_collection().find_one({"_id": task_oid})
+            existing_id = existing.get("google_calendar_event_id") if existing else None
+            if existing_id and existing_id != "pending":
+                print(f"  ✅ Already synced '{task.get('title')}' (event {existing_id}) — skipping.")
+                return existing_id
+            # Still 'pending' from another in-flight run — skip this cycle
+            print(f"  ⏳ Calendar sync for '{task.get('title')}' already in progress — skipping.")
+            return None
+
+    # ── 3. Auth — GoogleAuthError bubbles up uncaught to the scheduler ────────
+    # get_google_access_token now raises GoogleAuthError on every failure path.
+    token = await get_google_access_token(user_id, scope)
+
+    title       = task.get("title", "LIFEOS Focus Session")
     description = task.get("description", "")
-    priority = task.get("priority_score", 5.0)
-
-    # Determine timing
-    # Default to scheduling it starting in 1 hour if no deadline/schedule is set
-    from datetime import datetime, timezone, timedelta
-    
-    start_time = None
-    if task.get("deadline"):
-        try:
-            # Parse deadline ISO string
-            dl_dt = datetime.fromisoformat(task.get("deadline").replace("Z", "+00:00"))
-            # Schedule the task study block 4 hours before the deadline (or today if it's too close)
-            target_start = dl_dt - timedelta(hours=4)
-            now = datetime.now(timezone.utc)
-            if target_start < now:
-                target_start = now + timedelta(minutes=30)
-            start_time = target_start
-        except Exception:
-            start_time = datetime.now(timezone.utc) + timedelta(hours=1)
-    else:
-        start_time = datetime.now(timezone.utc) + timedelta(hours=1)
-
-    duration_hours = task.get("estimated_hours", 1.0)
-    end_time = start_time + timedelta(hours=duration_hours)
+    priority    = task.get("priority_score", 5.0)
 
     start_str = start_time.isoformat()
-    end_str = end_time.isoformat()
+    end_str   = end_time.isoformat()
 
-    # Define reminders dynamically based on priority
-    # Green/Low (<5.0), Orange/Medium (5.0-8.0), Red/Urgent (8.0+)
-    reminders = {"useDefault": False, "overrides": []}
-    if priority >= 8.0:
-        reminders["overrides"] = [
-            {"method": "popup", "minutes": 120},  # 2 hours before
-            {"method": "popup", "minutes": 30},   # 30 minutes before
-            {"method": "email", "minutes": 15},   # 15 minutes before
+    # ── 4. Explicit reminders — never rely on useDefault ─────────────────────
+    # 'popup' is what triggers mobile push notifications via the Google Calendar app.
+    if priority >= 8.0:       # URGENT
+        reminder_overrides = [
+            {"method": "popup", "minutes": 120},
+            {"method": "popup", "minutes": 30},
+            {"method": "email", "minutes": 15},
         ]
         color_id = "11"  # Red/Tomato
-    elif priority >= 5.0:
-        reminders["overrides"] = [
-            {"method": "popup", "minutes": 60},   # 1 hour before
-            {"method": "popup", "minutes": 15},   # 15 minutes before
+    elif priority >= 5.0:     # MEDIUM
+        reminder_overrides = [
+            {"method": "popup", "minutes": 60},
+            {"method": "popup", "minutes": 15},
         ]
         color_id = "5"   # Yellow/Banana
-    else:
-        reminders["overrides"] = [
-            {"method": "popup", "minutes": 15},   # 15 minutes before
+    else:                     # LOW
+        reminder_overrides = [
+            {"method": "popup", "minutes": 30},
         ]
         color_id = "2"   # Green/Sage
 
     event_payload = {
-      "summary": f"🎯 LIFEOS: {title}",
-      "description": f"Focus Block generated by LIFEOS.\n\nDescription: {description}\nPriority Score: {priority}/10",
-      "start": { "dateTime": start_str, "timeZone": "UTC" },
-      "end": { "dateTime": end_str, "timeZone": "UTC" },
-      "colorId": color_id,
-      "reminders": reminders
+        "summary": f"🎯 LIFEOS: {title}",
+        "description": (
+            f"Focus Block generated by LIFEOS.\n\n"
+            f"Description: {description}\n"
+            f"Priority Score: {priority}/10"
+        ),
+        "start": {"dateTime": start_str, "timeZone": "UTC"},
+        "end":   {"dateTime": end_str,   "timeZone": "UTC"},
+        "colorId": color_id,
+        "reminders": {
+            "useDefault": False,           # MUST be False — never trust user defaults
+            "overrides": reminder_overrides,
+        },
     }
 
     try:
-        # Check if they already have an event for this task, delete it first to prevent duplicates
-        existing_event_id = task.get("google_calendar_event_id")
         async with httpx.AsyncClient() as client:
-            if existing_event_id:
-                try:
-                    await client.delete(
-                        f"https://www.googleapis.com/calendar/v3/calendars/primary/events/{existing_event_id}",
-                        headers={"Authorization": f"Bearer {token}"},
-                        timeout=5.0
-                    )
-                except Exception:
-                    pass
-
-            # Create event
             res = await client.post(
                 "https://www.googleapis.com/calendar/v3/calendars/primary/events",
                 headers={
                     "Authorization": f"Bearer {token}",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
                 json=event_payload,
-                timeout=10.0
+                timeout=10.0,
             )
-            
-            if res.status_code in [200, 201]:
-                event_data = res.json()
-                event_id = event_data.get('id')
-                print(f"  📅 Calendar event successfully created: {event_id}")
-                
-                # Save the calendar event ID to the task document in MongoDB
-                try:
-                    from db.mongodb import tasks_collection
-                    from bson import ObjectId
-                    task_id = task.get("_id")
-                    if task_id:
-                        await tasks_collection().update_one(
-                            {"_id": ObjectId(task_id) if isinstance(task_id, str) else task_id},
-                            {"$set": {"google_calendar_event_id": event_id}}
-                        )
-                        print(f"  💾 Google Calendar Event ID saved to task {task_id}")
-                except Exception as db_err:
-                    print(f"  ⚠️ Failed to save calendar event ID to DB: {db_err}")
 
-                return event_data
-            else:
-                print(f"  ❌ Failed to create calendar event: {res.status_code} - {res.text}")
-                return None
+        # 401 → raise so scheduler logs it as auth-broken, not transient
+        if res.status_code == 401:
+            if task_oid:
+                await tasks_collection().update_one(
+                    {"_id": task_oid},
+                    {"$unset": {"google_calendar_event_id": ""}},
+                )
+            raise GoogleAuthError(
+                f"Google CalendAar API 401 for user '{user_id}' — token invalid. "
+                "User must re-authenticate."
+            )
 
+        if res.status_code not in (200, 201):
+            # Transient failure — $unset sentinel so next run can retry
+            if task_oid:
+                await tasks_collection().update_one(
+                    {"_id": task_oid},
+                    {"$unset": {"google_calendar_event_id": ""}},
+                )
+            print(f"  ❌ Calendar API error {res.status_code} for '{title}': {res.text}")
+            return None
+
+        event_data = res.json()
+        event_id   = event_data.get("id")
+        print(f"  📅 Calendar event created: {event_id} for '{title}'")
+
+        # ── 5. Replace 'pending' sentinel with the real event_id ─────────────
+        if task_oid and event_id:
+            try:
+                await tasks_collection().update_one(
+                    {"_id": task_oid},
+                    {"$set": {"google_calendar_event_id": event_id}},
+                )
+                print(f"  💾 Persisted google_calendar_event_id '{event_id}' → task {task_oid}")
+            except Exception as db_err:
+                print(f"  ⚠️ Could not persist event_id to DB: {db_err}")
+
+        return event_id
+
+    except GoogleAuthError:
+        raise  # Let caller (scheduler) handle auth errors distinctly
     except Exception as e:
-        print(f"  ❌ Error calling Google Calendar API: {e}")
+        # Unexpected failure — $unset sentinel so the next run can retry
+        if task_oid:
+            try:
+                await tasks_collection().update_one(
+                    {"_id": task_oid},
+                    {"$unset": {"google_calendar_event_id": ""}},
+                )
+            except Exception:
+                pass
+        print(f"  ❌ Unexpected error creating calendar event for '{title}': {e}")
         return None
 
 

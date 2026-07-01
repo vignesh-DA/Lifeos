@@ -5,7 +5,7 @@ Handles periodic jobs: deadline checks, morning briefings, and weekly reviews.
 from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from db.mongodb import tasks_collection, users_collection, reviews_collection
-from utils.google_api import create_calendar_event, delete_calendar_event, create_gmail_draft
+from utils.google_api import create_calendar_event, delete_calendar_event, create_gmail_draft, GoogleAuthError
 from bson import ObjectId
 
 scheduler = AsyncIOScheduler()
@@ -13,17 +13,16 @@ scheduler = AsyncIOScheduler()
 async def check_all_deadlines():
     """
     Check all pending tasks. If a deadline has passed, mark it as overdue.
-    Also sync upcoming tasks to calendar.
+    Also syncs tasks to Google Calendar if they don't have an event yet,
+    so mobile push notifications are triggered automatically.
     """
-    print("⏰ Running deadline checks...")
+    print("⏰ Running deadline checks + calendar sync...")
     try:
         now = datetime.now(timezone.utc)
         # Find all pending tasks
         cursor = tasks_collection().find({"status": "pending"})
         async for task in cursor:
             deadline_str = task.get("deadline")
-            if not deadline_str or deadline_str == "unknown":
-                continue
 
             if deadline_str == "overdue":
                 task_id = task["_id"]
@@ -34,23 +33,45 @@ async def check_all_deadlines():
                 )
                 continue
 
-            try:
-                # Parse deadline (handles Z suffix or ISO formats)
-                dl_dt = datetime.fromisoformat(deadline_str.replace("Z", "+00:00"))
-                # Ensure dl_dt is timezone-aware
-                if dl_dt.tzinfo is None:
-                    dl_dt = dl_dt.replace(tzinfo=timezone.utc)
+            if deadline_str and deadline_str != "unknown":
+                try:
+                    # Parse deadline (handles Z suffix or ISO formats)
+                    dl_dt = datetime.fromisoformat(deadline_str.replace("Z", "+00:00"))
+                    # Ensure dl_dt is timezone-aware
+                    if dl_dt.tzinfo is None:
+                        dl_dt = dl_dt.replace(tzinfo=timezone.utc)
 
-                # Check if it passed
-                if dl_dt < now:
-                    task_id = task["_id"]
-                    print(f"  🚨 Task '{task.get('title')}' is past deadline. Marking overdue.")
-                    await tasks_collection().update_one(
-                        {"_id": task_id},
-                        {"$set": {"status": "overdue"}}
-                    )
-            except Exception as parse_err:
-                print(f"  ⚠️ Error parsing deadline for task '{task.get('title')}': {parse_err}")
+                    # Check if it passed
+                    if dl_dt < now:
+                        task_id = task["_id"]
+                        print(f"  🚨 Task '{task.get('title')}' is past deadline. Marking overdue.")
+                        await tasks_collection().update_one(
+                            {"_id": task_id},
+                            {"$set": {"status": "overdue"}}
+                        )
+                        continue
+                except Exception as parse_err:
+                    print(f"  ⚠️ Error parsing deadline for task '{task.get('title')}': {parse_err}")
+
+            # ── Calendar Sync ──────────────────────────────────────────────────────────
+            # Always attempt — create_calendar_event() owns the atomic
+            # find_one_and_update check-and-set, so concurrent runs are safe.
+            # Skips and already-synced cases are logged inside the function.
+            user_id = task.get("user_id")
+            if user_id:
+                try:
+                    event_id = await create_calendar_event(user_id, task)
+                    # Only log here on a fresh sync; skip/already-done return None
+                    # (function itself logs those cases with ⏭️ / ✅ / ⏳ prefixes)
+                    if event_id and event_id != task.get("google_calendar_event_id"):
+                        print(f"  📅 Freshly synced '{task.get('title')}' → Google Calendar (event {event_id}).")
+                except GoogleAuthError as auth_err:
+                    # Auth broken — log clearly; no point retrying every 5 min
+                    print(f"  🔒 Re-auth required for user '{user_id}': {auth_err}")
+                    # TODO: set user.needs_reconnect = True in DB to surface in UI
+                except Exception as cal_err:
+                    # Transient error (network, Google 5xx) — will retry next run
+                    print(f"  ⚠️ Calendar sync error for '{task.get('title')}': {cal_err}")
 
     except Exception as e:
         print(f"  ❌ Error in check_all_deadlines background job: {e}")

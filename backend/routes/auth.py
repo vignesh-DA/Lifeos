@@ -114,30 +114,27 @@ async def login(request: Request, scope: Optional[str] = None, redirect_url: Opt
     client_id = settings.GOOGLE_CLIENT_ID
     redirect_uri = settings.GOOGLE_REDIRECT_URI
     
-    # Scopes
-    scopes = ["openid", "email", "profile"]
-    extra_params = ""
-    if scope == "calendar":
-        scopes.append("https://www.googleapis.com/auth/calendar.events")
-        extra_params = "&prompt=consent&include_granted_scopes=true"
-    elif scope == "gmail":
-        scopes.append("https://www.googleapis.com/auth/gmail.compose")
-        extra_params = "&prompt=consent&include_granted_scopes=true"
+    # Scopes — always request calendar + gmail so notifications work on mobile
+    scopes = [
+        "openid",
+        "email",
+        "profile",
+        "https://www.googleapis.com/auth/calendar.events",
+        "https://www.googleapis.com/auth/gmail.compose",
+    ]
     import urllib.parse
-    
+
     query_params = {
         "client_id": client_id,
         "redirect_uri": redirect_uri,
         "response_type": "code",
         "scope": " ".join(scopes),
         "access_type": "offline",
+        # prompt=consent ensures Google always shows the permission screen
+        # and always returns a refresh_token (needed for token renewal)
+        "prompt": "consent",
+        "include_granted_scopes": "true",
     }
-    
-    if scope in ["calendar", "gmail"]:
-        query_params["prompt"] = "consent"
-        query_params["include_granted_scopes"] = "true"
-    else:
-        query_params["prompt"] = "select_account"
 
     if redirect_url:
         query_params["state"] = redirect_url
