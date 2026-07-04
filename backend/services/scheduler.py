@@ -54,10 +54,9 @@ async def check_all_deadlines():
                     print(f"  ⚠️ Error parsing deadline for task '{task.get('title')}': {parse_err}")
 
             # ── Calendar Sync ──────────────────────────────────────────────────────────
-            # Always attempt — create_calendar_event() owns the atomic
-            # find_one_and_update check-and-set, so concurrent runs are safe.
-            # Skips and already-synced cases are logged inside the function.
-            user_id = task.get("user_id")
+            # Users are stored keyed by google_id (the OAuth 'sub' field).
+            # The calendar sync uses google_id as the user_id.
+            user_id = task.get("user_id")  # tasks store user_id = google_id
             if user_id:
                 try:
                     event_id = await create_calendar_event(user_id, task)
@@ -68,7 +67,6 @@ async def check_all_deadlines():
                 except GoogleAuthError as auth_err:
                     # Auth broken — log clearly; no point retrying every 5 min
                     print(f"  🔒 Re-auth required for user '{user_id}': {auth_err}")
-                    # TODO: set user.needs_reconnect = True in DB to surface in UI
                 except Exception as cal_err:
                     # Transient error (network, Google 5xx) — will retry next run
                     print(f"  ⚠️ Calendar sync error for '{task.get('title')}': {cal_err}")
@@ -94,8 +92,15 @@ async def send_morning_briefings():
         # Loop through all users
         cursor = users_collection().find()
         async for user in cursor:
-            user_id = user.get("user_id")
+            # Users are identified by google_id (OAuth 'sub' field), NOT a separate user_id.
+            user_id = user.get("google_id")
             if not user_id:
+                continue
+
+            # Skip users who haven't granted Gmail scope — avoids noisy auth errors
+            granted_scopes = user.get("google_tokens", {}).get("scopes", [])
+            if "https://www.googleapis.com/auth/gmail.compose" not in granted_scopes:
+                print(f"  ⏭️  Skipping morning briefing for '{user.get('name', user_id)}': Gmail scope not granted.")
                 continue
 
             # ── Per-user isolation: errors here must not kill the whole loop ──
@@ -177,7 +182,8 @@ async def generate_weekly_reviews():
 
         cursor = users_collection().find()
         async for user in cursor:
-            user_id = user.get("user_id")
+            # Users are identified by google_id (OAuth 'sub' field)
+            user_id = user.get("google_id")
             if not user_id:
                 continue
 

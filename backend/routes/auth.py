@@ -201,13 +201,32 @@ async def auth_callback(request: Request):
                 except Exception as img_err:
                     print(f"  ⚠️  Failed to download user avatar: {img_err}")
 
-            # Fetch exact scopes from tokeninfo to be 100% accurate
-            tokeninfo_res = await client.get(f"https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={token_data['access_token']}")
-            tokeninfo_data = tokeninfo_res.json()
-            granted_scopes = tokeninfo_data.get("scope", "").split(" ")
-            
         expires_in = token_data.get("expires_in", 3600)
         expires_at = int(time.time()) + expires_in
+
+        # PRIMARY: Use scopes from the token exchange response — most reliable source.
+        # token_data["scope"] is always present and accurate immediately after exchange.
+        scope_str = token_data.get("scope", "")
+        granted_scopes = [s for s in scope_str.split(" ") if s.strip()]
+
+        # FALLBACK: If token_data had no scope field, try tokeninfo as a secondary check.
+        if not granted_scopes:
+            print("  ⚠️  token_data had no 'scope' field — falling back to tokeninfo endpoint")
+            try:
+                tokeninfo_res = await client.get(
+                    f"https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={token_data['access_token']}",
+                    timeout=5.0
+                )
+                tokeninfo_data = tokeninfo_res.json()
+                granted_scopes = [s for s in tokeninfo_data.get("scope", "").split(" ") if s.strip()]
+                if granted_scopes:
+                    print(f"  ✅ Recovered scopes from tokeninfo: {granted_scopes}")
+                else:
+                    print("  ⚠️  tokeninfo also returned no scopes")
+            except Exception as ti_err:
+                print(f"  ⚠️  tokeninfo fallback failed: {ti_err}")
+
+        print(f"  ✅ Granted scopes: {granted_scopes}")
 
         google_tokens = {
             "access_token": token_data.get("access_token"),
@@ -231,12 +250,17 @@ async def auth_callback(request: Request):
             # Find existing user first to merge google_tokens
             existing_user = await users_col.find_one({"google_id": google_id})
             
-            # Keep old refresh_token if new one is missing
+            # Merge with existing stored tokens where needed
             if existing_user and "google_tokens" in existing_user:
                 old_tokens = existing_user["google_tokens"]
+                # Keep old refresh_token if new one wasn't returned (Google omits it after first issue)
                 if "refresh_token" not in google_tokens and "refresh_token" in old_tokens:
                     google_tokens["refresh_token"] = old_tokens["refresh_token"]
-                # We no longer merge scopes here. The new token's exact scopes (via tokeninfo) are what's valid.
+                # SAFETY: Never overwrite valid stored scopes with an empty list.
+                # If we got no scopes this login (edge case), preserve what's in DB.
+                if not google_tokens.get("scopes") and old_tokens.get("scopes"):
+                    google_tokens["scopes"] = old_tokens["scopes"]
+                    print(f"  ⚠️  No scopes from OAuth this cycle — preserving stored scopes: {google_tokens['scopes']}")
 
             set_dict = {
                 "email": user_info.get("email") or (existing_user.get("email") if existing_user else ""),

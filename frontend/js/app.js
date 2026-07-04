@@ -541,42 +541,94 @@ function getCurrentDateInfo() {
 const NotificationService = {
     initialized: false,
     intervalId: null,
+    _permissionRequested: false,
 
     init() {
-        if (!('Notification' in window)) return;
-        
-        // Modern browsers block permission requests on page load.
-        // Request permission on the first user interaction.
-        if (Notification.permission === 'default') {
+        if (!('Notification' in window)) {
+            console.info('ℹ️ Browser does not support Notifications.');
+            return;
+        }
+
+        // Request permission on the FIRST real user interaction.
+        // We use a one-time flag so we don't re-ask on every subsequent click.
+        if (Notification.permission === 'default' && !this._permissionRequested) {
             const requestOnInteraction = () => {
-                Notification.requestPermission();
+                if (this._permissionRequested) return;
+                this._permissionRequested = true;
+                Notification.requestPermission().then(permission => {
+                    console.info(`🔔 Notification permission: ${permission}`);
+                    if (permission === 'granted') {
+                        // Run check immediately after user grants permission
+                        this.checkTasks();
+                    }
+                });
                 document.removeEventListener('click', requestOnInteraction);
             };
             document.addEventListener('click', requestOnInteraction);
         }
-        
+
         if (!this.initialized) {
-            this.intervalId = setInterval(() => this.checkTasks(), 60000); // Check every minute
+            // Check every 60 seconds; first check after 5s to allow page data to load
+            this.intervalId = setInterval(() => this.checkTasks(), 60000);
             this.initialized = true;
-            // Check immediately on load after a short delay to allow tasks to load
             setTimeout(() => this.checkTasks(), 5000);
+        }
+    },
+
+    _getNotifiedKey() {
+        // Scope localStorage key to today's date so stale notifications
+        // don't persist across days and we don't spam on old overdue tasks.
+        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        return `lifeos_notified_${today}`;
+    },
+
+    _cleanOldNotificationKeys() {
+        // Purge notification keys older than 3 days to prevent localStorage bloat
+        const today = new Date();
+        for (let i = 3; i <= 7; i++) {
+            const past = new Date(today);
+            past.setDate(today.getDate() - i);
+            const key = `lifeos_notified_${past.toISOString().slice(0, 10)}`;
+            localStorage.removeItem(key);
+        }
+    },
+
+    _sendNotification(title, body) {
+        if (Notification.permission !== 'granted') return;
+        try {
+            const n = new Notification(title, {
+                body: body,
+                icon: '/assets/logo.png',
+                badge: '/assets/logo.png',
+                tag: title, // prevents duplicate stacked notifications for same title
+            });
+            // Auto-close after 8 seconds
+            setTimeout(() => n.close(), 8000);
+        } catch (e) {
+            console.warn('Notification failed:', e);
         }
     },
 
     async checkTasks() {
         if (Notification.permission !== 'granted') return;
-        if (!DEFAULT_USER_ID) return;
+
+        // Wait for DEFAULT_USER_ID to be set (set by dashboard after /auth/me)
+        if (!DEFAULT_USER_ID) {
+            console.info('🔔 NotificationService: waiting for user session...');
+            return;
+        }
 
         try {
             const data = await getTasks();
             const tasks = data.tasks || [];
             const now = new Date();
-            
-            // Get already notified tasks from localStorage
-            const notifiedTasksStr = localStorage.getItem('notified_tasks');
-            const notifiedTasks = notifiedTasksStr ? JSON.parse(notifiedTasksStr) : {};
 
-            let newNotifications = 0;
+            // Load today-scoped deduplication map
+            const notifyKey = this._getNotifiedKey();
+            const notifiedRaw = localStorage.getItem(notifyKey);
+            const notified = notifiedRaw ? JSON.parse(notifiedRaw) : {};
+
+            let fired = 0;
 
             tasks.forEach(task => {
                 if (task.status === 'completed' || !task.deadline) return;
@@ -585,45 +637,55 @@ const NotificationService = {
                 const timeDiff = deadline - now;
                 const minutesDiff = timeDiff / (1000 * 60);
 
-                let shouldNotify = false;
-                let title = '';
-                let body = '';
-
-                if (minutesDiff < 0 && minutesDiff > -60 && !notifiedTasks[`${task._id}_overdue`]) {
-                    // Just became overdue (within the last hour)
-                    shouldNotify = true;
-                    title = '🚨 Task Overdue!';
-                    body = `"${task.title}" is now overdue.`;
-                    notifiedTasks[`${task._id}_overdue`] = true;
-                } else if (minutesDiff > 0 && minutesDiff <= 15 && !notifiedTasks[`${task._id}_15min`]) {
-                    // Due in <= 15 mins
-                    shouldNotify = true;
-                    title = '⏰ Task Due Soon!';
-                    body = `"${task.title}" is due in ${Math.ceil(minutesDiff)} minutes.`;
-                    notifiedTasks[`${task._id}_15min`] = true;
+                // ── Overdue alert (fired once per day when task flips overdue) ──
+                if (minutesDiff < 0 && minutesDiff > -60 && !notified[`${task._id}_overdue`]) {
+                    notified[`${task._id}_overdue`] = true;
+                    if (fired < 3) {
+                        this._sendNotification(
+                            '🚨 Task Overdue!',
+                            `"${task.title}" is now overdue. Take action now!`
+                        );
+                        fired++;
+                    }
                 }
-
-                if (shouldNotify && newNotifications < 3) {
-                    new Notification(title, {
-                        body: body,
-                        icon: '/favicon.ico' // Or any suitable icon
-                    });
-                    newNotifications++;
+                // ── 15-minute warning ──
+                else if (minutesDiff > 0 && minutesDiff <= 15 && !notified[`${task._id}_15min`]) {
+                    notified[`${task._id}_15min`] = true;
+                    if (fired < 3) {
+                        this._sendNotification(
+                            '⏰ Task Due Soon!',
+                            `"${task.title}" is due in ${Math.ceil(minutesDiff)} min.`
+                        );
+                        fired++;
+                    }
+                }
+                // ── 60-minute warning ──
+                else if (minutesDiff > 15 && minutesDiff <= 60 && !notified[`${task._id}_60min`]) {
+                    notified[`${task._id}_60min`] = true;
+                    if (fired < 3) {
+                        this._sendNotification(
+                            '⏰ Upcoming Task',
+                            `"${task.title}" is due in about 1 hour.`
+                        );
+                        fired++;
+                    }
                 }
             });
 
-            localStorage.setItem('notified_tasks', JSON.stringify(notifiedTasks));
+            localStorage.setItem(notifyKey, JSON.stringify(notified));
+            this._cleanOldNotificationKeys();
 
         } catch (err) {
-            console.error('Failed to check tasks for notifications:', err);
+            console.error('NotificationService: failed to check tasks:', err);
         }
     }
 };
 
 // Initialize NotificationService when the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Only init if we are on a page that tracks tasks (like dashboard or calendar)
-    if (window.location.pathname.includes('dashboard') || window.location.pathname.includes('calendar') || window.location.pathname === '/') {
+    // Init on dashboard, calendar, or root — pages that track tasks
+    const path = window.location.pathname;
+    if (path.includes('dashboard') || path.includes('calendar') || path === '/' || path.endsWith('index.html')) {
         NotificationService.init();
     }
 });
